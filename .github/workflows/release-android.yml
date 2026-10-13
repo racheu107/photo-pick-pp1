@@ -1,0 +1,63 @@
+name: Release Android APK
+# 태그 android-vX.Y.Z 를 올리면 APK를 빌드해서 같은 이름의 릴리스에 붙인다.
+# 설치된 앱은 '앱 업데이트 확인'에서 이 릴리스를 찾아 바로 업데이트한다.
+on:
+  push:
+    tags: ['android-v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '릴리스 태그 (예: android-v0.3.0)'
+        required: true
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: 서명 키 준비 (기존 앱과 같은 키)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then echo "::error::ANDROID_DEBUG_KEYSTORE_B64 비밀값이 없어요. 기존 앱과 같은 서명 키가 있어야 업데이트가 설치돼요."; exit 1; fi
+          mkdir -p ~/.android
+          echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+          keytool -list -v -keystore ~/.android/debug.keystore -storepass android | grep SHA256
+      - name: 버전 확인
+        working-directory: android-app
+        run: |
+          VERSION="${TAG#android-v}"; VERSION="${VERSION%-preview}"
+          NAME=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          if [ "$VERSION" != "$NAME" ]; then echo "::error::태그($VERSION)와 앱 versionName($NAME)이 달라요."; exit 1; fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: APK 빌드
+        working-directory: android-app
+        run: gradle --no-daemon assembleDebug
+      - name: 서명 확인
+        run: |
+          APK=android-app/app/build/outputs/apk/debug/app-debug.apk
+          $ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs "$APK" | grep -i "SHA-256"
+          cp "$APK" "PhotoPick-${VERSION}-debug.apk"
+      - name: 릴리스 등록
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES="Photo Pick ${VERSION}. 설치된 앱의 메뉴 > 앱 업데이트 확인에서 바로 업데이트할 수 있어요."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "PhotoPick-${VERSION}-debug.apk" --clobber
+          else
+            gh release create "$TAG" "PhotoPick-${VERSION}-debug.apk" --title "Photo Pick ${VERSION}" --notes "$NOTES" --latest
+          fi

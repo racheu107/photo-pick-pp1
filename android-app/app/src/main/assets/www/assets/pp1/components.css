@@ -1,0 +1,124 @@
+/* Photo Pick PP-1 컴포넌트 (tokens.css 다음에 불러오기)
+   클래스 접두사 pp- 로 기존 스타일과 충돌을 피함 */
+
+/* ── 바탕 ───────────────────────────── */
+.pp-screen{min-height:100dvh;background:var(--pp-body);color:var(--pp-ink);font-family:var(--pp-font-ko);font-size:var(--pp-t-md);line-height:1.45;-webkit-font-smoothing:antialiased;word-break:keep-all;overflow-wrap:break-word;-webkit-tap-highlight-color:transparent}
+.pp-screen *{box-sizing:border-box}
+.pp-num{font-family:var(--pp-font-num);font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.pp-mono{font-family:var(--pp-font-mono)}
+.pp-muted{color:var(--pp-muted)}
+.pp-screen :focus-visible{outline:2px solid var(--pp-signal);outline-offset:3px}
+
+/* ── 카드 ───────────────────────────── */
+.pp-card{background:var(--pp-panel);border-radius:var(--pp-r-card);box-shadow:var(--pp-shadow-card)}
+.pp-card--low{box-shadow:var(--pp-shadow-card-low)}
+
+/* ── 포스터 패널 (시작·저장 결과) ─────── */
+.pp-poster{position:relative;overflow:hidden;background:var(--pp-oled);color:var(--pp-oled-text);border-radius:var(--pp-r-card);container-type:inline-size}
+.pp-poster::after{content:"";position:absolute;inset:0;background:url(noise.png) repeat;background-size:64px;opacity:.5;mix-blend-mode:overlay;pointer-events:none}
+
+/* ── 정보창 ─────────────────────────── */
+.pp-oled{display:flex;align-items:center;justify-content:space-between;gap:var(--pp-s3);min-height:2.5rem;padding:0 .875rem;border-radius:.75rem;background:var(--pp-oled);color:var(--pp-oled-text);font-size:var(--pp-t-sm)}
+.pp-oled .pp-mono{font-size:var(--pp-t-xs)}
+.pp-oled>span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pp-oled-sub{color:var(--pp-oled-muted)}
+
+/* ── LED ────────────────────────────── */
+.pp-led{display:inline-block;flex:none;width:.5rem;height:.5rem;border-radius:50%;background:var(--pp-faint)}
+.pp-led.is-on,[aria-checked="true"]>.pp-led,[aria-selected="true"]>.pp-led,[aria-pressed="true"]>.pp-led,.pp-ratekey:has([aria-pressed="true"])>.pp-led{background:var(--pp-signal);box-shadow:var(--pp-signal-glow)}
+
+/* ── 버튼 ───────────────────────────── */
+.pp-btn{display:flex;align-items:center;justify-content:center;gap:.625rem;width:100%;min-height:var(--pp-btn-h);padding:0 var(--pp-s4);border:0;border-radius:var(--pp-r-btn);background:var(--pp-ink);color:var(--pp-oled-text);font:700 var(--pp-t-btn)/1.2 var(--pp-font-ko);text-decoration:none;cursor:pointer}
+.pp-btn>.pp-led{background:var(--pp-signal);box-shadow:var(--pp-signal-glow)}
+.pp-btn--key{background:var(--pp-panel);color:var(--pp-ink);box-shadow:var(--pp-shadow-up);font-size:var(--pp-t-lg);transition:transform var(--pp-press),box-shadow var(--pp-press)}
+.pp-btn--key:active{transform:translateY(2px);box-shadow:var(--pp-shadow-down)}
+.pp-btn[disabled],.pp-btn[aria-disabled="true"]{background:var(--pp-well);color:var(--pp-muted);box-shadow:none;cursor:default}
+.pp-btn[disabled]>.pp-led,.pp-btn[aria-disabled="true"]>.pp-led{display:none}
+.pp-icon-btn{display:grid;place-items:center;width:var(--pp-touch);height:var(--pp-touch);border:0;background:transparent;color:inherit;cursor:pointer}
+
+/* ── 선택 가능한 키 (탭·범위·필터) ───────
+   선택 = 눌려 들어감 + LED. aria-checked / aria-selected / aria-pressed 중 하나로 상태를 준다 */
+.pp-seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:.375rem;padding:.375rem;border-radius:1rem;background:var(--pp-well)}
+.pp-opt{display:flex;align-items:center;justify-content:center;gap:var(--pp-s2);min-height:var(--pp-touch);padding:0 var(--pp-s3);border:0;border-radius:var(--pp-r-key);background:var(--pp-panel);color:var(--pp-ink);font:700 var(--pp-t-md)/1.2 var(--pp-font-ko);box-shadow:var(--pp-shadow-up);cursor:pointer;transition:transform var(--pp-press),box-shadow var(--pp-press),background-color var(--pp-press)}
+.pp-opt[aria-checked="true"],.pp-opt[aria-selected="true"],.pp-opt[aria-pressed="true"]{background:var(--pp-pressed);box-shadow:var(--pp-shadow-down);transform:translateY(2px)}
+
+/* ── 평가 키 3개 ─────────────────────── */
+.pp-ratekeys{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--pp-s2);padding:.625rem .625rem .75rem;border-radius:var(--pp-r-card);background:var(--pp-well)}
+.pp-ratekey{display:flex;flex-direction:column;align-items:center;gap:var(--pp-s2)}
+.pp-ratekey>button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.375rem;width:100%;min-height:var(--pp-key-h);border:0;border-radius:var(--pp-r-key);background:var(--pp-panel);color:var(--pp-ink);font:700 var(--pp-t-sm)/1.2 var(--pp-font-ko);box-shadow:var(--pp-shadow-up);cursor:pointer;transition:transform var(--pp-press),box-shadow var(--pp-press)}
+.pp-ratekey>button[aria-pressed="true"]{background:var(--pp-pressed);box-shadow:var(--pp-shadow-down);transform:translateY(2px)}
+.pp-ratekey svg{width:1.375rem;height:1.375rem}
+
+/* ── 체크박스 (촬영일) ───────────────── */
+.pp-check{display:grid;place-items:center;flex:none;width:1.625rem;height:1.625rem;border-radius:.4375rem;background:var(--pp-panel);box-shadow:inset 0 0 0 1.5px var(--pp-faint)}
+[aria-checked="true"]>.pp-check,[aria-checked="true"] .pp-check,[aria-checked="mixed"] .pp-check{background:var(--pp-signal);box-shadow:none}
+.pp-check::after{content:"";width:.875rem;height:.875rem;background:no-repeat center/contain}
+[aria-checked="true"] .pp-check::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5' fill='none' stroke='%23141414' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+[aria-checked="mixed"] .pp-check::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12h12' stroke='%23141414' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E")}
+
+/* ── 촬영일 카드 ─────────────────────── */
+.pp-datecard{display:block;width:100%;padding:.875rem 1rem;border:0;text-align:left;font-family:var(--pp-font-ko);color:var(--pp-ink);cursor:pointer}
+.pp-datecard[aria-checked="false"]{box-shadow:var(--pp-shadow-card-low)}
+.pp-datecard__head{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--pp-s3)}
+.pp-datecard__num{font:600 4rem/.85 var(--pp-font-num);letter-spacing:-.06em}
+.pp-datecard__thumbs{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:.3125rem;margin-top:.875rem}
+.pp-datecard__thumbs img{width:100%;height:2.5rem;object-fit:cover;border-radius:.25rem;display:block}
+
+/* ── 진행 표시 ───────────────────────── */
+.pp-track{position:relative;height:.375rem;border-radius:.1875rem;background:var(--pp-panel)}
+.pp-track__fill{position:absolute;inset:0 auto 0 0;border-radius:inherit;background:var(--pp-faint)}
+.pp-track__head{position:absolute;top:-.25rem;width:.25rem;height:.875rem;margin-left:-.125rem;border-radius:.125rem;background:var(--pp-ink)}
+.pp-track--dark{height:.75rem;background:var(--pp-oled-track)}
+.pp-track--dark .pp-track__fill{background:var(--pp-oled-text)}
+.pp-track--dark .pp-track__head{top:-.25rem;width:.375rem;height:1.25rem;background:var(--pp-signal);box-shadow:0 0 8px var(--pp-signal);animation:pp-blink 1s steps(2,start) infinite}
+@keyframes pp-blink{to{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.pp-track--dark .pp-track__head{animation:none}}
+
+/* ── 큰 숫자 (자릿수에 따라 줄어듦) ──────
+   data-digits="1|2|3|4" 를 넣는다. 포스터(.pp-poster) 폭 기준으로 크기 결정, 앞자리 0 채움은 2자리까지만 */
+.pp-bignum{display:block;font:600 10rem/.88 var(--pp-font-num);letter-spacing:-.07em;white-space:nowrap}
+.pp-bignum[data-digits="3"]{font-size:min(10rem,30cqw)}
+.pp-bignum[data-digits="4"]{font-size:min(10rem,23cqw)}
+.pp-bignum--copy{font-size:8rem}
+.pp-bignum--copy[data-digits="3"]{font-size:min(8rem,30cqw)}
+.pp-bignum--copy[data-digits="4"]{font-size:min(8rem,23cqw)}
+
+/* ── 통계 칸 ─────────────────────────── */
+.pp-stat{padding:.625rem .75rem}
+.pp-stat__label{display:flex;align-items:center;gap:.3125rem;font-size:var(--pp-t-xs);color:var(--pp-muted);font-weight:500}
+.pp-stat__value{display:block;font:500 2.5rem/1.1 var(--pp-font-num);letter-spacing:-.04em}
+.pp-stat__value.is-zero{color:var(--pp-muted)}
+
+/* ── 결과 줄 ─────────────────────────── */
+.pp-rows{padding:1px 0}
+.pp-row{display:flex;align-items:center;justify-content:space-between;min-height:2.875rem;padding:0 .875rem;font-size:var(--pp-t-md)}
+.pp-row+.pp-row{border-top:1px solid var(--pp-pressed)}
+.pp-row__label{display:flex;align-items:center;gap:var(--pp-s2)}
+.pp-row__value{font:600 1.125rem/1 var(--pp-font-num)}
+.pp-row__value.is-zero{color:var(--pp-muted)}
+.pp-row.is-key .pp-row__label{font-weight:700}
+
+/* ── 렌즈 그래픽 ─────────────────────── */
+.pp-lens{position:absolute;width:10.625rem;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 38% 34%,#2E2E2C 0%,#161616 62%,#0C0C0C 100%);box-shadow:inset 0 0 0 1px rgba(242,242,240,.16),inset 0 0 0 15px #161616,inset 0 0 0 16px rgba(242,242,240,.22),inset 0 0 0 32px #141414,inset 0 0 0 33px rgba(242,242,240,.3)}
+.pp-lens::after{content:"";position:absolute;left:50%;top:50%;width:16%;height:16%;transform:translate(-50%,-50%);border-radius:50%;background:var(--pp-signal);box-shadow:0 0 18px var(--pp-signal)}
+.pp-lens.is-off::after{background:var(--pp-muted);box-shadow:none}
+
+/* ── 사진 틀 (평가·확대) ─────────────── */
+.pp-frame{position:relative;padding:.625rem}
+.pp-frame__view{position:relative;width:100%;height:100%;border-radius:var(--pp-r-key);overflow:hidden;background:var(--pp-oled)}
+.pp-frame__view>img{width:100%;height:100%;object-fit:contain;display:block}
+.pp-frame__corner{position:absolute;width:.875rem;height:.875rem;border:0 solid var(--pp-oled-text)}
+.pp-tag{position:absolute;right:.75rem;top:.75rem;padding:.25rem .625rem;border-radius:.375rem;background:var(--pp-signal);color:var(--pp-ink);font:700 var(--pp-t-xs)/1.2 var(--pp-font-ko)}
+
+/* ── 썸네일 배지 ─────────────────────── */
+.pp-badge{position:absolute;right:.1875rem;top:.1875rem;display:grid;place-items:center;width:1.125rem;height:1.125rem;border-radius:50%;background:var(--pp-panel)}
+
+/* ── 아래에서 올라오는 확인 창 ────────── */
+.pp-scrim{position:fixed;inset:0;background:rgba(18,18,18,.55)}
+.pp-sheet{position:fixed;left:0;right:0;bottom:0;padding:.75rem 1.25rem calc(1.625rem + env(safe-area-inset-bottom));border-radius:var(--pp-r-sheet) var(--pp-r-sheet) 0 0;background:var(--pp-panel);box-shadow:0 -12px 28px -16px rgba(20,20,20,.4)}
+.pp-sheet::before{content:"";display:block;width:2.5rem;height:.25rem;margin:0 auto 1.125rem;border-radius:2px;background:var(--pp-well)}
+.pp-sheet h2{margin:0;font-size:var(--pp-t-h2);line-height:1.35}
+
+/* ── 안내 문구 ───────────────────────── */
+.pp-hint{font-size:var(--pp-t-sm);line-height:1.4;color:var(--pp-muted)}
+.pp-hint strong{color:var(--pp-ink)}

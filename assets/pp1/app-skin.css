@@ -1,0 +1,204 @@
+/* Photo Pick PP-1 스킨: 기존 화면 마크업 위에 시안7-3을 입힌다.
+   기존 CSS 5종 다음에 불러오고, 모든 규칙은 html.pp1 아래에 둔다. */
+
+/* ── 바탕 ─────────────────────────────────── */
+html.pp1,html.pp1 body,html.pp1 .final-shell{background:var(--pp-body)!important}
+html.pp1 .phone{background:var(--pp-body)!important;color:var(--pp-ink);font-family:var(--pp-font-ko);letter-spacing:0;padding:0 var(--pp-gutter) calc(1rem + env(safe-area-inset-bottom))!important}
+html.pp1 .phone *{font-family:inherit}
+html.pp1 .brand-strip{display:flex;align-items:center;justify-content:space-between;height:2rem;margin:0;padding:0 .25rem;background:none;color:var(--pp-ink);font:500 .8125rem/1 var(--pp-font-mono);letter-spacing:0}
+html.pp1 .brand-strip .brand-accent{color:inherit;margin-left:.25em}
+html.pp1 .brand-strip .brand-caption{font:500 .75rem/1 var(--pp-font-ko);color:var(--pp-muted);letter-spacing:0}
+
+/* ── 상단 ─────────────────────────────────── */
+html.pp1 .header{height:3.5rem!important;grid-template-columns:3rem minmax(0,1fr) 3rem!important;align-items:center!important;color:var(--pp-ink)}
+html.pp1 .header h1{font-size:1rem;font-weight:700;letter-spacing:-.01em;color:var(--pp-ink)}
+html.pp1 .header p{font-size:.75rem;color:var(--pp-muted);margin:.125rem 0 0}
+html.pp1 .icon-button{width:3rem!important;height:3rem!important;border-radius:var(--pp-r-key);background:none!important;color:var(--pp-ink)!important;box-shadow:none!important}
+
+/* ── 버튼 ─────────────────────────────────── */
+html.pp1 .cta,html.pp1 .download-action{display:flex;align-items:center;justify-content:center;gap:.625rem;min-height:var(--pp-btn-h)!important;border:0!important;border-radius:var(--pp-r-btn)!important;background:var(--pp-ink)!important;color:var(--pp-oled-text)!important;font:700 1rem/1.2 var(--pp-font-ko)!important;box-shadow:none!important;text-decoration:none}
+html.pp1 .cta:not(.secondary)::before,html.pp1 .download-action::before{content:"";width:.5rem;height:.5rem;border-radius:50%;background:var(--pp-signal);box-shadow:var(--pp-signal-glow);flex:none}
+html.pp1 .cta>svg{display:none}
+html.pp1 .cta.secondary{background:var(--pp-panel)!important;color:var(--pp-ink)!important;box-shadow:var(--pp-shadow-up)!important;font-size:.9375rem!important;transition:transform var(--pp-press),box-shadow var(--pp-press)}
+html.pp1 .cta.secondary:active{transform:translateY(2px);box-shadow:var(--pp-shadow-down)!important}
+html.pp1 .cta:disabled,html.pp1 .cta[aria-disabled="true"]{background:var(--pp-well)!important;color:var(--pp-muted)!important;box-shadow:none!important;opacity:1!important}
+html.pp1 .cta:disabled::before{display:none}
+html.pp1 .demo-link,html.pp1 .review-results{min-height:var(--pp-touch);background:none;border:0;color:var(--pp-ink)!important;font:700 .875rem var(--pp-font-ko);text-decoration:underline;text-underline-offset:4px}
+html.pp1 .hint,html.pp1 .small-note{font-size:.8125rem!important;line-height:1.45;color:var(--pp-muted)!important}
+html.pp1 .subtle{color:var(--pp-ink)!important}
+
+/* ── 01 시작 (home) ───────────────────────── */
+html.pp1 [data-screen="home"] .connection-art{position:relative;overflow:hidden;border-radius:var(--pp-r-card);background:var(--pp-oled)!important;padding:1.25rem;min-height:15rem}
+html.pp1 [data-screen="home"] .connection-art img{filter:invert(1) grayscale(1) contrast(.9);mix-blend-mode:screen;opacity:.9}
+html.pp1 [data-screen="home"] .connection-art::after{content:"";position:absolute;inset:0;background:url(noise.png) repeat;background-size:64px;opacity:.5;mix-blend-mode:overlay;pointer-events:none}
+html.pp1 .connection-steps{background:var(--pp-panel);border-radius:var(--pp-r-card);box-shadow:var(--pp-shadow-card);padding:.25rem .875rem;margin:.75rem 0}
+html.pp1 .connection-steps li{padding:.75rem 0;border-color:var(--pp-pressed)!important}
+html.pp1 .connection-steps li>span{background:var(--pp-pressed)!important;color:var(--pp-ink)!important;font:600 .875rem var(--pp-font-num)!important;box-shadow:none!important}
+html.pp1 .connection-steps b{font-size:.9375rem;color:var(--pp-ink)}
+html.pp1 .connection-steps p{font-size:.8125rem;color:var(--pp-muted)}
+
+/* ── 02 촬영일 (groups) ───────────────────── */
+html.pp1 .group-intro{font-size:1.25rem!important;font-weight:700;line-height:1.35;color:var(--pp-ink)}
+html.pp1 .group-intro small{display:block;margin-top:.25rem;font-size:.8125rem;font-weight:500;color:var(--pp-muted)}
+html.pp1 .group-quick-start{display:none!important}
+html.pp1 .group-selection{display:flex;align-items:center;justify-content:space-between;min-height:3rem;padding:0 .875rem;border:0!important;border-radius:var(--pp-r-btn);background:var(--pp-pressed)!important;font-size:.8125rem;color:var(--pp-muted)}
+html.pp1 .group-select-all{font:700 .9375rem var(--pp-font-ko)!important;color:var(--pp-ink)!important}
+html.pp1 .date-groups{display:flex;flex-direction:column;gap:.5rem;padding:.5rem 0}
+html.pp1 .date-group{display:grid!important;grid-template-columns:auto 4.5rem 1fr;align-items:center;gap:.875rem;padding:.75rem .875rem!important;border:0!important;border-radius:var(--pp-r-card)!important;background:var(--pp-panel)!important;box-shadow:var(--pp-shadow-card-low)!important}
+html.pp1 .date-group:has(input:checked){box-shadow:var(--pp-shadow-card)!important}
+html.pp1 .date-check{width:1.625rem!important;height:1.625rem!important;border:0!important;border-radius:.4375rem!important;background:var(--pp-panel)!important;box-shadow:inset 0 0 0 1.5px var(--pp-faint)!important;color:transparent!important;display:grid!important;place-items:center}
+html.pp1 .date-check svg{width:1rem;height:1rem;stroke:var(--pp-ink)!important;stroke-width:3}
+html.pp1 label:has(input:checked)>.date-check,html.pp1 input:checked+.date-check{background:var(--pp-signal)!important;box-shadow:none!important;color:var(--pp-ink)!important}
+html.pp1 .group-thumbnail{width:4.5rem!important;height:3rem!important;border-radius:.375rem!important;overflow:hidden}
+html.pp1 .group-thumbnail img{width:100%;height:100%;object-fit:cover}
+html.pp1 .group-copy b{display:block;font:600 1.0625rem/1.3 var(--pp-font-ko);color:var(--pp-ink)}
+html.pp1 .group-copy small{font-size:.8125rem;color:var(--pp-muted)}
+html.pp1 .group-footer{background:var(--pp-body)!important;border:0!important;box-shadow:none!important;padding-top:.5rem}
+
+/* ── 03 사진 목록 (pick) ──────────────────── */
+html.pp1 .review-context{display:flex;align-items:center;justify-content:space-between;min-height:2.75rem;font-size:.8125rem;color:var(--pp-muted)}
+html.pp1 .review-context .subtle{font-weight:700}
+html.pp1 .album-intro{font-size:.8125rem;color:var(--pp-muted)}
+html.pp1 .album-filters,html.pp1 .filters{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(max-content,1fr);gap:.375rem;padding:.375rem!important;border:0!important;border-radius:1rem!important;background:var(--pp-well)!important;overflow-x:auto;scrollbar-width:none}
+html.pp1 .album-filters button,html.pp1 .filters button{min-height:2.75rem!important;padding:0 .75rem!important;border:0!important;border-radius:var(--pp-r-key)!important;background:var(--pp-panel)!important;color:var(--pp-ink)!important;font:700 .8125rem var(--pp-font-ko)!important;box-shadow:var(--pp-shadow-up)!important;white-space:nowrap;transition:transform var(--pp-press),box-shadow var(--pp-press)}
+html.pp1 .album-filters button[aria-pressed="true"],html.pp1 .filters button[aria-pressed="true"]{background:var(--pp-pressed)!important;box-shadow:var(--pp-shadow-down)!important;transform:translateY(2px)}
+html.pp1 .album-filters button[aria-pressed="true"]::before,html.pp1 .filters button[aria-pressed="true"]::before{content:"";display:inline-block;width:.4375rem;height:.4375rem;margin-right:.375rem;border-radius:50%;background:var(--pp-signal);box-shadow:var(--pp-signal-glow);vertical-align:.1em}
+html.pp1 .album-grid,html.pp1 .summary-grid{gap:.3125rem!important}
+html.pp1 .tile{border-radius:.375rem!important;overflow:hidden;box-shadow:none!important;border:0!important;background:var(--pp-well)!important}
+html.pp1 .grade-badge{border:0!important;box-shadow:none!important;background:var(--pp-panel)!important;color:var(--pp-ink)!important;font:700 .6875rem var(--pp-font-ko)!important}
+html.pp1 .grade-badge svg{stroke:var(--pp-ink)!important;fill:none}
+html.pp1 .grade-badge.best svg{fill:var(--pp-ink)!important}
+html.pp1 .grade-badge.unrated{background:rgba(18,18,18,.72)!important;color:var(--pp-oled-text)!important}
+
+/* ── 03 평가 (focus-review) ───────────────── */
+html.pp1 .focus-review.modal{background:var(--pp-body)!important;color:var(--pp-ink)!important;padding:max(.5rem,env(safe-area-inset-top)) var(--pp-gutter) max(.75rem,env(safe-area-inset-bottom))!important}
+html.pp1 .focus-review .detail-top{grid-template-columns:auto 1fr auto!important;gap:.5rem!important;height:3rem!important;min-height:3rem!important;margin-bottom:.5rem!important;color:var(--pp-ink)}
+html.pp1 .focus-review .detail-top button{color:var(--pp-ink)!important;font:700 .875rem var(--pp-font-ko)!important;min-height:3rem!important}
+html.pp1 .focus-review .detail-return span{font-size:.875rem!important}
+html.pp1 .focus-review .detail-navigation{justify-self:stretch;justify-content:space-between;height:2.5rem;padding:0 .25rem;border-radius:.75rem;background:var(--pp-oled);color:var(--pp-oled-text)}
+html.pp1 .focus-review .detail-navigation span{color:var(--pp-oled-text)!important;font:500 .8125rem var(--pp-font-mono)!important}
+html.pp1 .focus-review .detail-navigation button{color:var(--pp-oled-text)!important;width:2.75rem!important;min-width:2.75rem!important;min-height:2.5rem!important;font-size:1.5rem!important}
+html.pp1 .focus-review .photo-stage .card{background:var(--pp-panel)!important;border-radius:var(--pp-r-card)!important;box-shadow:var(--pp-shadow-card)!important;padding:.625rem;clip-path:none!important;overflow:hidden!important}
+html.pp1 .focus-review .photo-viewport{background:var(--pp-oled)!important;border-radius:var(--pp-r-key)!important;overflow:hidden!important;height:100%}
+html.pp1 .focus-review .photo-viewport img{border-radius:0!important}
+html.pp1 .focus-review .photo-viewport .photo-front-card{background:var(--pp-oled)!important;box-shadow:none!important}
+html.pp1 .focus-review .photo-viewport .photo-back-card{display:none!important}
+/* 평가 키: 홈(well) 안에 세 키, 위에 LED */
+html.pp1 .focus-review .photo-stage .overlay{display:grid!important;grid-template-columns:repeat(3,1fr)!important;gap:.5rem!important;width:auto!important;min-height:0!important;padding:1.375rem .625rem .75rem!important;border-radius:var(--pp-r-card)!important;background:var(--pp-well)!important;border:0!important;box-shadow:none!important;position:relative!important}
+html.pp1 .focus-review .preview-rating-group{display:contents!important}
+html.pp1 .focus-review .preview-rating-group::after{display:none!important}
+html.pp1 .focus-review .photo-stage .action.preview-action{position:relative;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:.375rem;width:100%!important;max-width:none!important;height:4.75rem!important;min-height:4.75rem!important;border:0!important;border-radius:var(--pp-r-key)!important;background:var(--pp-panel)!important;color:var(--pp-ink)!important;box-shadow:var(--pp-shadow-up)!important;transition:transform var(--pp-press),box-shadow var(--pp-press)}
+html.pp1 .focus-review .photo-stage .action.preview-action::after{content:"";position:absolute;top:-.875rem;left:50%;width:.5rem;height:.5rem;margin-left:-.25rem;border-radius:50%;background:var(--pp-faint)}
+html.pp1 .focus-review .photo-stage .action.preview-action[aria-pressed="true"]{background:var(--pp-pressed)!important;box-shadow:var(--pp-shadow-down)!important;transform:translateY(2px)!important}
+html.pp1 .focus-review .photo-stage .action.preview-action[aria-pressed="true"]::after{background:var(--pp-signal);box-shadow:var(--pp-signal-glow)}
+html.pp1 .focus-review .photo-stage .action svg{width:1.375rem!important;height:1.375rem!important;stroke:var(--pp-ink)!important;color:var(--pp-ink)!important}
+html.pp1 .focus-review .photo-stage .action.best svg,html.pp1 .focus-review .photo-stage .action[aria-pressed="true"] svg{fill:var(--pp-ink)!important}
+html.pp1 .focus-review .preview-action-label{position:static!important;width:auto!important;height:auto!important;margin:0!important;clip:auto!important;overflow:visible!important;font:700 .8125rem var(--pp-font-ko)!important;color:var(--pp-ink)!important}
+html.pp1 .focus-review .preview-undo{position:absolute!important;right:.625rem;top:-3.75rem;width:3rem!important;height:3rem!important;min-width:3rem!important;border:0!important;border-radius:50%!important;background:rgba(18,18,18,.78)!important;color:var(--pp-oled-text)!important;z-index:3}
+html.pp1 .focus-review .preview-undo:disabled{display:none!important}
+html.pp1 .focus-review .preview-status,html.pp1 .focus-review .clear-rating{color:var(--pp-muted)!important;font-size:.8125rem!important;text-align:left}
+html.pp1 .focus-review .gesture-label{background:rgba(18,18,18,.82)!important;color:var(--pp-oled-text)!important}
+
+/* 첫 안내 (review-motion-guide) */
+html.pp1 .review-motion-guide .guide-skip{color:var(--pp-oled-text)!important;font-weight:700;min-height:3rem}
+html.pp1 .review-motion-guide .guide-next{min-height:3.5rem;border-radius:var(--pp-r-btn)!important;background:var(--pp-panel)!important;color:var(--pp-ink)!important;font-weight:700;box-shadow:var(--pp-shadow-up)}
+html.pp1 .review-motion-guide .guide-button-legend span{background:var(--pp-panel)!important;color:var(--pp-ink)!important;border:0!important;box-shadow:var(--pp-shadow-up)}
+html.pp1 .review-motion-guide .guide-step{font-family:var(--pp-font-mono)}
+
+/* ── 06 결과 (summary) ────────────────────── */
+html.pp1 .preview-selection-total{font-size:.8125rem;color:var(--pp-muted)}
+html.pp1 .summary-counts{display:grid!important;grid-template-columns:repeat(2,1fr);gap:.375rem;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+html.pp1 .summary-counts .rating-row{display:grid!important;grid-template-columns:auto 1fr;grid-template-rows:auto auto;align-items:center;column-gap:.375rem;padding:.625rem .75rem!important;border:0!important;border-radius:var(--pp-r-card);background:var(--pp-panel);box-shadow:var(--pp-shadow-card)}
+html.pp1 .summary-counts .rating-row b{font-size:.75rem;font-weight:500;color:var(--pp-muted)}
+html.pp1 .summary-counts .rating-row strong{grid-column:1/-1;font:500 2rem/1.15 var(--pp-font-num);letter-spacing:-.04em;color:var(--pp-ink)}
+html.pp1 .rating-symbol{width:1rem!important;height:1rem!important;background:none!important;border:0!important;color:var(--pp-ink)!important}
+html.pp1 .rating-symbol svg{width:.875rem;height:.875rem;stroke:var(--pp-ink)!important}
+html.pp1 .rating-symbol.best svg{fill:var(--pp-ink)!important}
+html.pp1 .rating-symbol.unrated i{border-color:var(--pp-muted)!important}
+html.pp1 .continue-cta{justify-content:space-between!important;padding:0 1rem!important}
+html.pp1 .continue-cta svg{display:inline-block!important;width:1rem;height:1rem;stroke:var(--pp-ink)}
+
+/* ── 07·08 저장 / 다운로드 ─────────────────── */
+html.pp1 .screen-title{font-size:1.625rem;font-weight:700;letter-spacing:-.02em;color:var(--pp-ink)}
+html.pp1 .screen-copy{font-size:.9375rem;color:var(--pp-muted)}
+html.pp1 .download-card,html.pp1 .done-card,html.pp1 .resume-panel,html.pp1 .folder-panel{position:relative;overflow:hidden;border:0!important;border-radius:var(--pp-r-card)!important;background:var(--pp-oled)!important;color:var(--pp-oled-text)!important;box-shadow:none!important;padding:1.25rem!important}
+html.pp1 .download-card::after,html.pp1 .done-card::after{content:"";position:absolute;inset:0;background:url(noise.png) repeat;background-size:64px;opacity:.5;mix-blend-mode:overlay;pointer-events:none}
+html.pp1 .download-card b,html.pp1 .done-card b{color:var(--pp-oled-text)}
+html.pp1 .download-card p,html.pp1 .done-card p{color:var(--pp-oled-muted)!important;font-family:var(--pp-font-mono);font-size:.75rem}
+html.pp1 .transfer,html.pp1 .progress{background:var(--pp-oled-track)!important;border-radius:.375rem;overflow:hidden}
+html.pp1 #transfer-bar,html.pp1 .progress>i,html.pp1 .progress>span{background:var(--pp-oled-text)!important}
+
+/* ── 아래에서 올라오는 창 ──────────────────── */
+html.pp1 .sheet-backdrop{background:rgba(18,18,18,.55)!important}
+html.pp1 .sheet{background:var(--pp-panel)!important;color:var(--pp-ink)!important;border-radius:var(--pp-r-sheet) var(--pp-r-sheet) 0 0!important;box-shadow:0 -12px 28px -16px rgba(20,20,20,.4)!important}
+html.pp1 .sheet h2,html.pp1 .sheet h3{font-size:1.3125rem;color:var(--pp-ink)}
+html.pp1 .sheet p{color:var(--pp-ink)}
+
+/* ── 공통 ─────────────────────────────────── */
+html.pp1 :focus-visible{outline:2px solid var(--pp-signal)!important;outline-offset:3px}
+html.pp1 input[type="checkbox"]{accent-color:var(--pp-signal)}
+
+/* ── 1차 확인 후 보정 ─────────────────────── */
+html.pp1 .date-check svg{opacity:0}
+html.pp1 label:has(input:checked)>.date-check svg,html.pp1 input:checked+.date-check svg{opacity:1}
+html.pp1 .focus-review .photo-stage .action.preview-action.active{background:var(--pp-pressed)!important;box-shadow:var(--pp-shadow-down)!important;transform:translateY(2px)!important}
+html.pp1 .focus-review .photo-stage .action.preview-action.active::after{background:var(--pp-signal);box-shadow:var(--pp-signal-glow)}
+html.pp1 .focus-review .photo-stage .action.preview-action.active svg{fill:var(--pp-ink)!important}
+html.pp1 .focus-review .preview-status:empty::before{content:"별로를 눌러도 사진은 지워지지 않아요";font-weight:700;color:var(--pp-ink)}
+html.pp1 .summary-counts .rating-row>*{position:static!important;margin:0!important;transform:none!important}
+html.pp1 .summary-counts .rating-row .rating-symbol{grid-row:1;grid-column:1}
+html.pp1 .summary-counts .rating-row b{grid-row:1;grid-column:2;text-align:left}
+html.pp1 .summary-counts .rating-row strong{grid-row:2;grid-column:1/-1;text-align:left}
+html.pp1 .summary-counts{grid-auto-rows:auto!important;height:auto!important}
+html.pp1 .summary-counts .rating-row{height:auto!important;min-height:4.75rem!important;max-height:none!important;overflow:visible!important}
+html.pp1 .summary-counts .rating-row strong{display:block!important;line-height:1.1!important;padding-top:.25rem!important}
+
+/* ── 07 저장 중 (transfer) ────────────────── */
+html.pp1 .transfer{position:relative;overflow:hidden;display:block!important;text-align:left!important;margin-top:.5rem;padding:1.125rem 1.25rem 1.375rem!important;border:0!important;border-radius:var(--pp-r-card)!important;background:var(--pp-oled)!important;color:var(--pp-oled-text)!important;box-shadow:none!important;container-type:inline-size}
+html.pp1 .transfer::after{content:"";position:absolute;inset:0;background:url(noise.png) repeat;background-size:64px;opacity:.5;mix-blend-mode:overlay;pointer-events:none}
+html.pp1 .transfer .ring{all:unset;display:block;font:600 min(8rem,30cqw)/.9 var(--pp-font-num)!important;letter-spacing:-.06em;color:var(--pp-oled-text)!important;margin:.25rem 0 .25rem}
+html.pp1 .transfer .ring::before,html.pp1 .transfer .ring::after{display:none!important}
+html.pp1 .transfer h3{order:-1;margin:0;font-size:.875rem;font-weight:700;color:var(--pp-oled-muted)}
+html.pp1 .transfer #transfer-count{margin:0;font:500 1.375rem/1.3 var(--pp-font-num);color:var(--pp-oled-muted)}
+html.pp1 .transfer p{color:var(--pp-oled-muted);font-size:.8125rem}
+html.pp1 .progress{height:.75rem!important;margin:.75rem 0 1rem;border-radius:.375rem!important;background:var(--pp-oled-track)!important;border:0!important}
+html.pp1 .progress #transfer-bar{display:block;height:100%;border-radius:inherit;background:var(--pp-oled-text)!important;position:relative}
+html.pp1 .progress #transfer-bar::after{content:"";position:absolute;right:-3px;top:-4px;width:6px;height:20px;border-radius:3px;background:var(--pp-signal);box-shadow:0 0 8px var(--pp-signal)}
+html.pp1 .progress{overflow:visible!important}
+
+/* ── 08 저장 결과 (native result) ─────────── */
+html.pp1 .destination-panel,html.pp1 .share-preview{display:flex;align-items:center;gap:.75rem;padding:.875rem!important;border:0!important;border-radius:var(--pp-r-card)!important;background:var(--pp-panel)!important;box-shadow:var(--pp-shadow-card)!important;color:var(--pp-ink)}
+html.pp1 .destination-panel p,html.pp1 .share-preview span{color:var(--pp-muted);font-size:.8125rem}
+html.pp1 .share-preview img{width:3.5rem;height:3.5rem;object-fit:cover;border-radius:.375rem}
+html.pp1 [data-screen="ready"] .screen-copy{font:500 .9375rem/1.5 var(--pp-font-ko);color:var(--pp-ink)}
+
+/* ── 사진 읽는 중 (reading-layer) ─────────── */
+html.pp1 .reading-layer{background:var(--pp-body)!important;color:var(--pp-ink)!important}
+html.pp1 .reading-layer h2{color:var(--pp-ink)}
+html.pp1 .scan-progress,html.pp1 .reading-layer .progress{background:var(--pp-well)!important}
+html.pp1 .transfer{display:flex!important;flex-direction:column;align-items:flex-start!important;justify-content:flex-start!important;height:auto!important;min-height:0!important;gap:.25rem}
+html.pp1 .transfer>*{text-align:left!important;margin-left:0!important;position:relative;z-index:1}
+html.pp1 .progress{background:var(--pp-well)!important}
+html.pp1 .progress #transfer-bar{background:var(--pp-ink)!important}
+
+/* ── 리뷰 반영 ────────────────────────────── */
+/* 아이콘을 시안과 같게: 별로 ×, 좋음 ●, 매우 좋음 ★ */
+html.pp1 .focus-review .photo-stage .action.preview-action svg,html.pp1 .rating-symbol svg{display:none!important}
+html.pp1 .focus-review .photo-stage .action.preview-action::before,html.pp1 .rating-symbol:not(.unrated)::before{content:"";width:1.375rem;height:1.375rem;background:var(--pp-ink);-webkit-mask:var(--ico) center/contain no-repeat;mask:var(--ico) center/contain no-repeat}
+html.pp1 .rating-symbol:not(.unrated)::before{width:.875rem;height:.875rem;display:block}
+html.pp1 [data-rate="skip"],html.pp1 .rating-symbol.skip{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 6l12 12M18 6L6 18' stroke='black' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+html.pp1 [data-rate="keep"],html.pp1 .rating-symbol.keep{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='6'/%3E%3C/svg%3E")}
+html.pp1 [data-rate="best"],html.pp1 .rating-symbol.best{--ico:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z'/%3E%3C/svg%3E")}
+/* 첫 안내 범례도 같은 기호로 */
+html.pp1 .guide-legend-keep{font-size:0!important}
+html.pp1 .guide-legend-keep::before{content:"● 좋음";font-size:.8125rem}
+/* 사진 목록: 미평가 배지는 숨기고 평가한 사진만 표시 */
+html.pp1 .album-grid .grade-badge.unrated{display:none!important}
+/* 필터가 화면 밖으로 잘리지 않게 두 줄 허용 */
+html.pp1 .album-filters{grid-auto-flow:row!important;grid-template-columns:repeat(auto-fit,minmax(5.25rem,1fr))!important;overflow:visible!important}
+/* 큰 글씨에서 평가 화면 상단이 줄바꿈되지 않게 */
+html.pp1 .focus-review .detail-navigation span,html.pp1 .focus-review .detail-top button{white-space:nowrap!important}
+html.pp1 .focus-review .detail-navigation span{min-width:0!important}
+@media (max-width:380px){html.pp1 .focus-review .detail-return span{display:none}}
+/* 디자인 실험용 '버튼 스타일 무광/유리' 선택은 PP-1에서 숨김 */
+html.pp1 .toolbar-material-setting{display:none!important}

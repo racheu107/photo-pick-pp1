@@ -1,0 +1,63 @@
+/* Photo Pick PP-1 디자인 토큰 (시안7-3 최종)
+   규칙
+   · 주황(--pp-signal)은 "켜짐·선택"에만 쓴다. 경고·실패·장식에 쓰지 않는다.
+   · 선택 상태 = 눌려 들어감(--pp-pressed 면 + --pp-shadow-down) + LED 켜짐. 모양으로도 구분한다.
+   · 카드 구분은 그림자. 검은 외곽선을 쓰지 않는다.
+   · 크기는 rem 기준(1rem = 16px). 시스템 글자 크기 설정을 따른다. */
+:root{
+  /* 색 */
+  --pp-body:#EDEDEB;        /* 기기 본체 배경 */
+  --pp-panel:#F7F7F5;       /* 카드, 키 윗면 */
+  --pp-pressed:#E3E3E0;     /* 눌린 키, 보조 면 */
+  --pp-well:#D6D6D2;        /* 키가 들어앉는 홈 */
+  --pp-ink:#141414;         /* 본문 글자, 주 버튼 */
+  --pp-muted:#5C5C5A;       /* 보조 글자 (밝은 면에서 최소 대비 4.6) */
+  --pp-faint:#BDBDB9;       /* 꺼진 LED, 장식선 전용. 글자에 쓰지 않음 */
+  --pp-oled:#121212;        /* 정보창, 포스터 패널 */
+  --pp-oled-text:#F2F2F0;
+  --pp-oled-muted:#BDBDB9;  /* 어두운 면 위 보조 글자 (대비 9.9) */
+  --pp-oled-track:#3A3A38;
+  --pp-signal:#FF5A1F;      /* 켜짐·선택 전용 */
+  --pp-signal-glow:0 0 6px #FF5A1F;
+
+  /* 그림자 */
+  --pp-shadow-card:0 1px 2px rgba(20,20,20,.06),0 12px 28px -16px rgba(20,20,20,.32);
+  --pp-shadow-card-low:0 1px 2px rgba(20,20,20,.08);
+  --pp-shadow-up:inset 0 -3px 0 #D6D6D2,0 1px 0 rgba(20,20,20,.18),0 6px 10px -6px rgba(20,20,20,.35);
+  --pp-shadow-down:inset 0 2px 3px rgba(20,20,20,.22);
+
+  /* 모서리 */
+  --pp-r-chip:.5rem;   /* 8 */
+  --pp-r-key:.625rem;  /* 10 */
+  --pp-r-btn:.875rem;  /* 14 */
+  --pp-r-card:1.125rem;/* 18 */
+  --pp-r-sheet:1.5rem; /* 24 */
+
+  /* 간격 (4 단위) */
+  --pp-s1:.25rem; --pp-s2:.5rem; --pp-s3:.75rem; --pp-s4:1rem; --pp-s5:1.25rem; --pp-s6:1.5rem;
+  --pp-gutter:1rem;    /* 화면 좌우 여백 */
+
+  /* 크기 */
+  --pp-touch:3rem;     /* 최소 터치 영역 48 */
+  --pp-btn-h:3.5rem;   /* 주 버튼 56 */
+  --pp-key-h:4.75rem;  /* 평가 키 76 */
+
+  /* 글꼴 */
+  --pp-font-ko:"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo",system-ui,sans-serif; /* 한글은 기기 내장 글꼴 사용 */
+  --pp-font-num:"Hanken Grotesk",var(--pp-font-ko);   /* 숫자, 큰 숫자, 로고 */
+  --pp-font-mono:"JetBrains Mono",ui-monospace,monospace; /* 파일명, 용량 수치만 */
+
+  /* 글자 크기 */
+  --pp-t-xs:.75rem;   /* 12 최소 */
+  --pp-t-sm:.8125rem; /* 13 */
+  --pp-t-md:.875rem;  /* 14 */
+  --pp-t-lg:.9375rem; /* 15 */
+  --pp-t-btn:1rem;    /* 16 */
+  --pp-t-h2:1.3125rem;/* 21 */
+  --pp-t-h1:1.625rem; /* 26 */
+
+  /* 움직임 */
+  --pp-press:.08s ease-out;
+  --pp-slide:.2s ease-out;
+}
+@media (prefers-reduced-motion:reduce){:root{--pp-press:0s;--pp-slide:0s}}
