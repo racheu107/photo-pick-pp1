@@ -1,9 +1,12 @@
 name: Release Android APK
-# 태그 android-vX.Y.Z 를 올리면 APK를 빌드해서 같은 이름의 릴리스에 붙인다.
+# 앱 versionName을 올려 main에 반영하면, 그 버전의 릴리스가 아직 없을 때 자동으로 APK를 빌드해 릴리스한다.
+# (태그 android-vX.Y.Z 를 올리거나 Actions에서 직접 실행해도 된다.)
 # 설치된 앱은 '앱 업데이트 확인'에서 이 릴리스를 찾아 바로 업데이트한다.
 on:
   push:
     tags: ['android-v*']
+    branches: [main]
+    paths: ['android-app/app/build.gradle', '.github/workflows/release-android.yml']
   workflow_dispatch:
     inputs:
       tag:
@@ -15,22 +18,35 @@ jobs:
   release:
     runs-on: ubuntu-latest
     env:
-      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      TAG: ${{ github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
       # 업데이트가 계속 설치되려면 항상 이 키로 서명해야 한다
       EXPECTED_SHA256: '1D:2B:45:23:D6:01:26:5D:95:C9:36:90:68:0C:EF:26:98:41:07:95:B6:F8:1B:F0:18:F7:93:35:2F:67:FB:31' 
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: 릴리스할 버전 정하기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -z "$TAG" ]; then
+            NAME=$(grep -oP "versionName '\K[^']+" android-app/app/build.gradle)
+            echo "TAG=android-v$NAME" >> $GITHUB_ENV
+            if gh release view "android-v$NAME" >/dev/null 2>&1; then echo "android-v$NAME 릴리스가 이미 있어서 건너뛰어요."; echo "SKIP=1" >> $GITHUB_ENV; fi
+          fi
+      - if: env.SKIP != '1'
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
+      - if: env.SKIP != '1'
+        uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
-      - uses: gradle/actions/setup-gradle@v4
+      - if: env.SKIP != '1'
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: 서명 키 준비 (기존 앱과 같은 키)
+      - if: env.SKIP != '1'
+        name: 서명 키 준비 (기존 앱과 같은 키)
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_B64 }}
         run: |
@@ -39,14 +55,16 @@ jobs:
           FP=$(keytool -list -v -keystore "$RUNNER_TEMP/photopick.keystore" -storepass android -alias androiddebugkey | grep -m1 'SHA256:' | awk '{print $2}')
           echo "keystore SHA-256: $FP"
           if [ "$FP" != "$EXPECTED_SHA256" ]; then echo "::error::등록된 키가 예상한 키와 달라요 ($FP)."; exit 1; fi
-      - name: 버전 확인
+      - if: env.SKIP != '1'
+        name: 버전 확인
         working-directory: android-app
         run: |
           VERSION="${TAG#android-v}"; VERSION="${VERSION%-preview}"
           NAME=$(grep -oP "versionName '\K[^']+" app/build.gradle)
           if [ "$VERSION" != "$NAME" ]; then echo "::error::태그($VERSION)와 앱 versionName($NAME)이 달라요."; exit 1; fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-      - name: APK 빌드
+      - if: env.SKIP != '1'
+        name: APK 빌드
         working-directory: android-app
         run: >
           gradle --no-daemon assembleDebug
@@ -54,14 +72,16 @@ jobs:
           -Pandroid.injected.signing.store.password=android
           -Pandroid.injected.signing.key.alias=androiddebugkey
           -Pandroid.injected.signing.key.password=android
-      - name: 서명 확인
+      - if: env.SKIP != '1'
+        name: 서명 확인
         run: |
           APK=android-app/app/build/outputs/apk/debug/app-debug.apk
           SIGNER=$($ANDROID_HOME/build-tools/35.0.0/apksigner verify --print-certs "$APK" | grep -m1 'SHA-256' | awk '{print toupper($NF)}')
           echo "APK signer: $SIGNER"
           if [ "$SIGNER" != "$(echo $EXPECTED_SHA256 | tr -d ':')" ]; then echo "::error::APK 서명이 예상한 키와 달라요."; exit 1; fi
           cp "$APK" "PhotoPick-${VERSION}-debug.apk"
-      - name: 릴리스 등록
+      - if: env.SKIP != '1'
+        name: 릴리스 등록
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -69,5 +89,5 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "PhotoPick-${VERSION}-debug.apk" --clobber
           else
-            gh release create "$TAG" "PhotoPick-${VERSION}-debug.apk" --title "Photo Pick ${VERSION}" --notes "$NOTES" --latest
+            gh release create "$TAG" "PhotoPick-${VERSION}-debug.apk" --target "$GITHUB_SHA" --title "Photo Pick ${VERSION}" --notes "$NOTES" --latest
           fi

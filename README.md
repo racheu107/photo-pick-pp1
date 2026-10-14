@@ -39,7 +39,7 @@ SD카드 사진을 찍은 날짜별로 꺼내 보고, 키 세 개(별로·좋음
 - `android-app/`: Android 프로젝트. `app/src/main/assets/www`에 같은 화면을 루트 경로(`assets/`)로 넣어 둠
 - 소스 원본은 로컬 `claude-design-standalone/web-pp1-auto`. 웹과 www는 그 소스를 옮긴 것
 
-배포: main에 올리면 pages.yml이 `index.html`, `manifest.webmanifest`, `app/`, `assets/`를 GitHub Pages로 배포. `android-vX.Y.Z` 태그를 올리면 release.yml이 등록 키로 서명한 APK를 릴리스에 붙임.
+배포: main에 올리면 pages.yml이 `index.html`, `manifest.webmanifest`, `app/`, `assets/`를 GitHub Pages로 배포. `android-app/app/build.gradle`의 versionName을 올려 main에 반영하면 release-android.yml이 그 버전 릴리스가 없을 때 자동 릴리스(등록 키로 서명). 태그 `android-vX.Y.Z`나 Actions 직접 실행도 가능.
 
 ## 이전 기록
 
