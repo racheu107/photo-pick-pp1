@@ -1125,3 +1125,24 @@ body::after{content:"";position:fixed;inset:0;z-index:2147483000;background:url(
 @media (max-height:700px){.vf .hintline{display:flex;font-size:.75rem;padding:.25rem .7rem;gap:.6rem}.vf .hintline span:last-child{display:none}}
 .pv-link svg{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .sheetgrid.feed{overflow-x:hidden;overflow-y:auto}
+
+/* ══ 0.5.3 ══ */
+/* 평가 화면: 사진 위에는 아무것도 얹지 않음 (평가 표시·모서리 프레임 없음) */
+.vf .view .corner,.vf .grade-tag{display:none}
+/* 평가 키: 평소엔 어둡게, 고른 키만 하얗게. 빈 원·빈 별 안에 주황 불 */
+.vf .rk{background:#242423;color:#D9D9D5;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.35),0 0 0 1px #2f2f2d;transition:background-color .12s,color .12s,box-shadow .12s}
+.vf .rk .pp-led{display:none}
+.vf .rk:active,.vf .rk.is-down{background:#3a3a37;color:#fff}
+.vf .rk[aria-pressed="true"],.vf .rk[aria-pressed="true"][data-g="best"]{background:#F6F5F1;color:#141414;box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 #D6D4CE,0 0 0 1px #F6F5F1,0 6px 18px -6px rgba(255,255,255,.25)}
+.rkg{width:1.625rem;height:1.625rem;overflow:visible}
+.rkg .ln{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.rkg .lit{fill:#FF5A1F;opacity:0;transform-box:fill-box;transform-origin:center}
+.rk[aria-pressed="true"] .rkg .lit{opacity:1;filter:drop-shadow(0 0 3px rgba(255,90,31,.85))}
+.vf .rk.is-down .rkg .lit{opacity:.5}
+.rk[aria-pressed="true"][data-g="skip"] .rkg .ln{stroke:#141414}
+/* 밝은 화면(여러 장 평가)의 키는 그대로, 글리프만 같은 세트 */
+.batchbar .rk .rkg .lit{opacity:0}
+/* 모아보기: 평가 시작이 주 버튼 */
+.sheet-row .sheet-start{gap:.4rem}
+.sheet-row .sheet-start svg{width:1.125rem;height:1.125rem}
+.vf .rk:focus-visible{outline:2px solid #F2F2EE;outline-offset:2px}.vf .rk:focus:not(:focus-visible){outline:none}

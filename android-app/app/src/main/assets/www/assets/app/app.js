@@ -4,7 +4,7 @@
    onNativeSaveProgress, onNativeSaveComplete, nativeBack)은 이전 버전과 같은 이름과 인자를 받는다. */
 (() => {
 'use strict';
-const VERSION = 'PP-1 0.5.2';
+const VERSION = 'PP-1 0.5.3';
 const NATIVE = window.PhotoPickAndroid || null;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const G = ['skip', 'keep', 'best'];
@@ -58,7 +58,7 @@ const persistNow = () => {
 };
 
 /* 선택한 날짜 안의 사진 id 목록 */
-const selIds = () => S.photos.filter(p => S.dates.includes(p.date)).map(p => p.id);
+const selIds = () => S.groups.filter(g => S.dates.includes(g.key)).flatMap(g => g.ids); // 날짜 목록 순서(최신 날짜 먼저), 하루 안은 찍은 순
 const counts = (ids = selIds()) => { const c = { skip: 0, keep: 0, best: 0, unrated: 0 }; ids.forEach(id => c[R[S.photos[id].key] || 'unrated']++); return c; };
 const picks = () => selIds().map(id => S.photos[id]).filter(p => R[p.key] === 'best' || (S.scope === 'combined' && R[p.key] === 'keep'));
 const dateTitle = (d, short) => {
@@ -236,20 +236,21 @@ function rate() {
   const ids = selIds(), p = S.photos[S.cur], i = ids.indexOf(S.cur), c = counts(ids);
   if (S.view === 'sheet') return sheetView(ids, c);
   const g = R[p.key];
-  return `<div class="top"><button class="icon-btn" data-act="back" aria-label="날짜 고르기로">${ic('back')}</button>
+  return `<div class="top"><button class="icon-btn" data-act="back" aria-label="모아보기로">${ic('back')}</button>
   <div class="pp-oled" id="oled"><span class="pp-mono o-name" id="o-name"><span class="o-file">${esc(p.name)}</span><span class="o-time">${p.time ? `<span class="o-dot">&nbsp;·&nbsp;</span>${p.time}` : ''}</span></span><span class="oled-count" id="o-count"><i>${pad(i + 1)}</i>/${pad(ids.length)}</span></div>
   <button class="text-btn res-key" data-act="results">결과</button></div>
   <div class="frame grow"><div class="view" id="view" role="group" aria-label="${esc(p.name)} 사진. 옆으로 밀면 이동, 아래로 내리면 좋음, 위로 올리면 매우 좋음">
     <div class="ph" id="ph"><img id="photo" src="${fullUrl(p)}" alt="${esc(p.name)}" draggable="false"></div>
-    <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
-    ${gradeTag(g)}<span class="zoom-chip" id="zoomchip" hidden>100%</span><div class="stamp" id="stamp"></div>
+    <span id="gtag" hidden></span><span class="zoom-chip" id="zoomchip" hidden>100%</span><div class="stamp" id="stamp"></div>
   </div></div>
   <div class="navrow"><button class="key" data-act="sheet" aria-label="모아보기">${ic('grid')}</button><button class="key" data-act="prev" aria-label="이전 사진" ${i <= 0 ? 'disabled' : ''}>${ic('back')}</button>
     <div class="reel" id="reel">${reel(ids)}</div><span class="sr" id="reel-pb" role="progressbar" aria-label="평가 진행" aria-valuemin="0" aria-valuemax="${ids.length}" aria-valuenow="${ids.length - c.unrated}" aria-valuetext="${ids.length}장 중 ${ids.length - c.unrated}장 평가"></span>
     <button class="key" data-act="next" aria-label="다음 사진" ${i >= ids.length - 1 ? 'disabled' : ''}>${ic('next')}</button><button class="key undo-key" data-act="undo" aria-label="마지막 평가 되돌리기" ${S.history.length ? '' : 'disabled'}>${ic('undo')}<span>되돌리기</span></button></div>
-  <div class="ratekeys" role="group" aria-label="평가">${G.map((k, n) => `<button class="rk" data-act="rate" data-g="${k}" aria-pressed="${g === k}"><span class="pp-led"></span>${ic(k)}<span>${LABEL[k]}</span><kbd>${n + 1}</kbd></button>`).join('')}</div>
+  <div class="ratekeys" role="group" aria-label="평가">${G.map((k, n) => `<button class="rk" data-act="rate" data-g="${k}" aria-pressed="${g === k}">${rkIc(k)}<span>${LABEL[k]}</span><kbd>${n + 1}</kbd></button>`).join('')}</div>
   <p class="hintline">${HINT}</p>`;
 }
+// 평가 키 글리프: 빈 원·빈 별 안에 불(.lit)이 들어온다
+const rkIc = k => `<svg class="rkg" viewBox="0 0 24 24" aria-hidden="true">${{ skip: '<path class="ln" d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>', keep: '<circle class="ln" cx="12" cy="12" r="7"/><circle class="lit" cx="12" cy="12" r="5"/>', best: '<path class="ln" d="M12 3.6l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.5l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7z"/><path class="lit" d="M12.0 5.81 L13.85 9.73 L18.14 10.25 L14.96 13.21 L15.77 17.43 L12.0 15.36 L8.23 17.43 L9.04 13.21 L5.86 10.25 L10.15 9.73z"/>' }[k]}</svg>`;
 const HINT = '<span>← → 넘기기</span><span>↓ 좋음</span><span>↑ 매우 좋음</span><span>두 번 탭 확대</span>';
 const gradeTag = g => g ? `<button class="grade-tag ${g}" id="gtag" data-act="clear-grade" aria-label="${LABEL[g]} 평가 취소">${ic(g)}${LABEL[g]}${g === 'skip' ? '<small>저장 안 함 · 사진은 그대로</small>' : ''}<span class="x">${ic('skip')}</span></button>` : '<span id="gtag" hidden></span>';
 function meter(ids) {
@@ -290,7 +291,7 @@ function sheetView(ids, c) {
   <div class="sheetgrid grow${S.multi ? ' is-multi' : ''}" id="sheet">${list.length ? list.map(p => tile(p, p.id === S.cur)).join('') : '<p class="empty">이 평가의 사진이 없어요.</p>'}</div>
   ${S.multi ? `<div class="batchbar"><div class="batch-top"><b><span class="pp-num" id="multi-n">${S.multi.size}</span>장 선택</b><button class="text-btn" data-act="multi-all">${list.length && list.every(p => S.multi.has(p.id)) ? '모두 해제' : '보이는 사진 모두'}</button><button class="text-btn" data-act="multi-off">취소</button></div>
     <div class="ratekeys">${G.map(k => `<button class="rk" data-act="batch" data-g="${k}" ${S.multi.size ? '' : 'disabled'}><span class="pp-led"></span>${ic(k)}<span>${LABEL[k]}</span></button>`).join('')}</div></div>`
-  : `<div class="row3"><button class="pp-btn pp-btn--key" data-act="one">${ic('one')}<span>한 장씩</span></button><button class="pp-btn pp-btn--key" data-act="multi-on" aria-label="여러 장 선택">${ic('check2')}<span class="lbl-opt">여러 장</span></button><button class="pp-btn" data-act="results"><span class="pp-led"></span>결과 보기</button></div>`}`;
+  : `<div class="row3 sheet-row"><button class="pp-btn sheet-start" data-act="one" data-from="start">${c.unrated === ids.length ? '평가 시작' : c.unrated ? '이어서 평가' : '한 장씩 보기'}${ic('next')}</button><button class="pp-btn pp-btn--key" data-act="multi-on" aria-label="여러 장 선택">${ic('check2')}<span class="lbl-opt">여러 장</span></button><button class="pp-btn pp-btn--key" data-act="results">결과</button></div>`}`;
 }
 const tile = (p, cur) => { const g = R[p.key]; const sel = S.multi?.has(p.id); return `<button class="tile${g === 'skip' ? ' is-skip' : g ? '' : ' is-un'}${cur && !S.multi ? ' is-cur' : ''}${sel ? ' is-sel' : ''}" data-act="open" data-id="${p.id}" aria-label="${esc(p.name)} · ${g ? LABEL[g] : '미평가'}"${S.multi ? ` aria-pressed="${!!sel}"` : ''}>${S.multi ? '<span class="selbox"></span>' : ''}${tImg(p)}${g ? `<span class="b ${g}">${ic(g)}</span>` : ''}</button>`; };
 
@@ -475,11 +476,11 @@ function load(items, folder, dataset) {
   items.sort((a, b) => (a.at || '9999').localeCompare(b.at || '9999') || a.path.localeCompare(b.path));
   S.photos = items.map((x, id) => ({ ...x, id, key: x.key || `${dataset === 'demo' ? 'demo:' : ''}${x.name}|${x.size}|${x.mtime}`, time: x.at ? x.at.slice(11, 16) : '' }));
   const map = new Map(); S.photos.forEach(p => { if (!map.has(p.date)) map.set(p.date, { key: p.date, ids: [] }); map.get(p.date).ids.push(p.id); });
-  S.groups = [...map.values()].sort((a, b) => a.key === 'unknown' ? 1 : b.key === 'unknown' ? -1 : a.key.localeCompare(b.key));
+  S.groups = [...map.values()].sort((a, b) => a.key === 'unknown' ? 1 : b.key === 'unknown' ? -1 : b.key.localeCompare(a.key)); // 최신 날짜가 위
   S.dataset = dataset; S.folder = folder; S.msg = ''; S.history = []; S.filter = 'all'; S.view = 'one'; S.save = null; S.reading = null;
   const last = store.last, same = last && last.folder === folder && last.dataset === dataset && last.count === S.photos.length;
-  S.dates = same && last.dates?.length ? last.dates.filter(d => map.has(d)) : S.groups.map(g => g.key);
-  if (!S.dates.length) S.dates = S.groups.map(g => g.key);
+  // 처음 불러오면 아무 날짜도 고르지 않은 상태. 같은 폴더를 이어서 열 때만 지난 선택을 되살림 (예시는 바로 체험하도록 전체)
+  S.dates = same && last.dates?.length ? last.dates.filter(d => map.has(d)) : dataset === 'demo' ? S.groups.map(g => g.key) : [];
   const ck = same ? S.photos.findIndex(p => p.key === last.cur) : -1;
   S.cur = selIds().find(id => !R[S.photos[id].key]) ?? (ck >= 0 ? ck : selIds()[0] ?? 0);
   const restored = S.photos.filter(p => R[p.key]).length;
@@ -804,13 +805,15 @@ function flyOut(g, target, via) {
   const img = $('#photo');
   if (!motion() || !img) { if (target != null) go(target, 1, true); return; }
   busy = true;
-  const frames = { skip: [{ transform: 'translateX(-120%) rotate(-9deg)', opacity: .2, filter: 'grayscale(1)' }], keep: [{ transform: 'translateY(40%) scale(.78) rotate(3deg)', opacity: 0 }], best: [{ transform: 'translateY(-60%) scale(1.06) rotate(-2deg)', opacity: 0 }] }[g];
-  const cur = img.style.transform || 'none';
+  const cur = img.style.transform || 'none', c = cur === 'none' ? '' : cur;
   const seq = ++navSeq; pendingNav = target;
-  const a = busyAnim = g === 'best'
-    ? img.animate([{ transform: cur, opacity: 1 }, { transform: `${cur === 'none' ? '' : cur} scale(1.025)`, opacity: 1, offset: .25 }, { transform: cur, opacity: 1, offset: .55 }, { transform: cur, opacity: 1, offset: .78 }, { transform: `translateY(-40px) ${cur === 'none' ? '' : cur}`, opacity: 0 }], { duration: 640, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'forwards' })
-    : img.animate([{ transform: cur, opacity: 1, filter: 'none' }, ...frames], { duration: 220, delay: 40, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
-  if (g !== 'skip') $('.frame')?.animate([{ boxShadow: 'var(--pp-shadow-card)' }, { boxShadow: '0 0 0 3px var(--pp-signal), var(--pp-shadow-card)' }, { boxShadow: 'var(--pp-shadow-card)' }], { duration: 520 });
+  // 살짝 반대로 당겼다가(긴장) 빠르게 튕겨 나간다
+  const K = {
+    skip: [{ transform: cur, opacity: 1, filter: 'none' }, { transform: `${c} translateX(10px) rotate(1deg)`, offset: .2 }, { transform: `${c} translateX(-115%) rotate(-10deg)`, opacity: .15, filter: 'grayscale(1)' }],
+    keep: [{ transform: cur, opacity: 1 }, { transform: `${c} translateY(-10px) scale(1.012)`, offset: .25 }, { transform: `${c} translateY(42%) scale(.84) rotate(2deg)`, opacity: 0 }],
+    best: [{ transform: cur, opacity: 1 }, { transform: `${c} scale(1.05)`, offset: .3 }, { transform: `${c} scale(1.03)`, offset: .45 }, { transform: `${c} translateY(-60%) scale(1.02) rotate(-1.5deg)`, opacity: 0 }]
+  }[g];
+  const a = busyAnim = img.animate(K, { duration: g === 'best' ? 340 : 230, easing: 'cubic-bezier(.45,0,.75,.1)', fill: 'forwards' });
   a.finished.then(() => { if (busyAnim !== a) return; busy = false; busyAnim = null; pendingNav = null; if (target != null && seq === navSeq) go(target, 1, true, seq); }, () => { if (busyAnim === a) { busy = false; busyAnim = null; } });
 }
 function go(id, dir = 1, fromRate = false, seq) {
@@ -828,7 +831,7 @@ function go(id, dir = 1, fromRate = false, seq) {
     if (shown || tok !== swapTok || $('#photo') !== img) return; shown = true;
     img.src = url; img.style.opacity = '';
     if (!motion() || fromRate === 'quiet') return;
-    if (fromRate) img.animate([{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    if (fromRate) img.animate([{ opacity: 0, transform: 'translateY(14px) scale(.93)' }, { opacity: 1, transform: 'scale(1.012)', offset: .65 }, { opacity: 1, transform: 'none' }], { duration: 230, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
     else img.animate([{ transform: `translateX(${dir * 22}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
   };
   if (img.src === url) show(); else { const pre = new Image(); pre.src = url; const t = setTimeout(show, 400); (pre.decode ? pre.decode() : Promise.resolve()).then(() => { clearTimeout(t); show(); }, () => { clearTimeout(t); show(); }); }
@@ -842,8 +845,15 @@ function updateRateUI() {
   const ids = selIds(), p = S.photos[S.cur], i = ids.indexOf(S.cur), g = R[p.key], c = counts(ids);
   $('#o-name') && ($('#o-name').innerHTML = `<span class="o-file">${esc(p.name)}</span><span class="o-time">${p.time ? `<span class="o-dot">&nbsp;·&nbsp;</span>${p.time}` : ''}</span>`);
   const oc = $('#o-count'); if (oc) { oc.innerHTML = `<i class="oled-roll">${pad(i + 1)}</i>/${pad(ids.length)}`; }
-  $$('.rk').forEach(b => { const on = b.dataset.g === g; if (b.getAttribute('aria-pressed') !== String(on) && on && motion()) b.querySelector('.pp-led').animate([{ transform: 'scale(2.4)' }, { transform: 'scale(1)' }], { duration: 320 }); b.setAttribute('aria-pressed', on); });
-  const t = $('#gtag'); if (t) t.outerHTML = gradeTag(g);
+  $$('.rk').forEach(b => {
+    const on = b.dataset.g === g, was = b.getAttribute('aria-pressed') === 'true'; b.setAttribute('aria-pressed', on);
+    if (on && !was && motion()) {
+      // 눌린 키는 쑥 들어갔다 튕겨 오르고, 글리프 안 불이 탁 켜진다
+      b.animate([{ transform: 'scale(.92)' }, { transform: 'scale(1.035)', offset: .55 }, { transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.3,1.5,.5,1)' });
+      b.querySelector('.lit')?.animate([{ transform: 'scale(.4)', opacity: 0 }, { transform: 'scale(1.35)', opacity: 1, offset: .5 }, { transform: 'scale(1)', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+    }
+  });
+
   $('[data-act="prev"]').disabled = i <= 0; $('[data-act="next"]').disabled = i >= ids.length - 1; $('[data-act="undo"]').disabled = !S.history.length;
   const rl = $('#reel'), pb = $('#reel-pb'); if (rl) { const rated = ids.length - c.unrated; rl.innerHTML = reel(ids); pb?.setAttribute('aria-valuenow', rated); pb?.setAttribute('aria-valuetext', `${ids.length}장 중 ${rated}장 평가`); fillReel(); }
   $('#view')?.setAttribute('aria-label', `${p.name} 사진${g ? ', ' + LABEL[g] : ''}`);
@@ -1022,7 +1032,7 @@ function back() {
   switch (S.screen) {
     case 'reading': cancelRead(); return true;
     case 'dates': to('home'); return true;
-    case 'rate': if (S.multi) { S.multi = null; refocus = '[data-act="multi-on"]'; render(); } else if (S.view === 'sheet') { S.view = 'one'; render(); } else to(S.groups.length > 1 ? 'dates' : 'home'); return true;
+    case 'rate': if (S.multi) { S.multi = null; refocus = '[data-act="multi-on"]'; render(); } else if (S.view === 'one') { S.view = 'sheet'; render(); } else to(S.groups.length > 1 ? 'dates' : 'home'); return true;
     case 'results': S.view = 'one'; to('rate'); return true;
     case 'saving': stopSave(); return true;
     case 'done': S.save = null; to('results'); return true;
@@ -1071,13 +1081,13 @@ document.addEventListener('click', e => {
     case 'back': back(); break;
     case 'sel-all': S.dates = S.dates.length === S.groups.length ? [] : S.groups.map(g => g.key); persist(); refreshDates(); break;
     case 'date': { const k = b.dataset.k; S.dates = S.dates.includes(k) ? S.dates.filter(d => d !== k) : [...S.dates, k]; persist(); refreshDates(); if (motion()) b.animate([{ transform: 'scale(.98)' }, { transform: 'none' }], { duration: 180 }); break; }
-    case 'start': { const ids = selIds(); if (!ids.length) break; S.view = 'one'; S.history = []; if (!ids.includes(S.cur)) S.cur = ids.find(id => !R[S.photos[id].key]) ?? ids[0]; else if (R[S.photos[S.cur].key]) S.cur = ids.find(id => !R[S.photos[id].key]) ?? S.cur; persist(); to('rate'); break; }
+    case 'start': { const ids = selIds(); if (!ids.length) break; S.view = 'sheet'; S.filter = 'all'; S.cur = ids.find(id => !R[S.photos[id].key]) ?? ids[0]; S.history = []; if (!ids.includes(S.cur)) S.cur = ids.find(id => !R[S.photos[id].key]) ?? ids[0]; else if (R[S.photos[S.cur].key]) S.cur = ids.find(id => !R[S.photos[id].key]) ?? S.cur; persist(); to('rate'); break; }
     case 'rate': doRate(b.dataset.g); if (motion()) b.animate([{ transform: 'translateY(3px) scale(.97)' }, { transform: 'translateY(2px)' }], { duration: 160 }); break;
     case 'jump': { const ids = selIds(), to = +b.dataset.id, d = ids.indexOf(to) - ids.indexOf(S.cur); if (d) go(to, d > 0 ? 1 : -1); break; }
     case 'prev': case 'next': { const ids = selIds(), i = ids.indexOf(S.cur), d = a === 'next' ? 1 : -1; if (ids[i + d] != null) go(ids[i + d], d); break; }
     case 'undo': undo(); break;
     case 'sheet': S.view = 'sheet'; render(); break;
-    case 'one': S.view = 'one'; S.multi = null; render(); break;
+    case 'one': { S.view = 'one'; S.multi = null; const ids = selIds(); if (!ids.includes(S.cur) || (b.dataset.from === 'start' && R[S.photos[S.cur].key])) S.cur = ids.find(id => !R[S.photos[id].key]) ?? ids[0]; render(); break; }
     case 'filter': S.filter = b.dataset.f; if (S.multi) { render(); const vis = new Set($$('#sheet .tile').map(t => +t.dataset.id)); S.multi = new Set([...S.multi].filter(id => vis.has(id))); } render(); break;
     case 'open': {
       if (lpFired && e.detail !== 0) { lpFired = false; break; }
