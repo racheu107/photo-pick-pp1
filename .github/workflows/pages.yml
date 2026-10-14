@@ -22,7 +22,7 @@ jobs:
       - name: Prepare website files
         run: |
           mkdir -p pages-dist
-          cp index.html pages-dist/
+          cp index.html manifest.webmanifest pages-dist/
           cp -R assets pages-dist/assets
           cp -R app pages-dist/app
           touch pages-dist/.nojekyll

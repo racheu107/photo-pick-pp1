@@ -4,8 +4,8 @@
   let current=null;
   const clear=()=>{if(current)URL.revokeObjectURL(current.url);current=null};
   const header=size=>{const bytes=new Uint8Array(size);return {bytes,view:new DataView(bytes.buffer)}};
-  const crc=async(file,cancelled)=>{let value=0xffffffff;for(let pos=0;pos<file.size;pos+=1048576){if(cancelled())throw Error('cancelled');const bytes=new Uint8Array(await file.slice(pos,pos+1048576).arrayBuffer());for(const b of bytes)value=table[(value^b)&255]^(value>>>8);await new Promise(resolve=>setTimeout(resolve,0));}return (value^0xffffffff)>>>0};
-  const prepare=async(files,cancelled,progress)=>{
+  const crc=async(file,cancelled)=>{let value=0xffffffff;for(let pos=0;pos<file.size;pos+=4194304){if(cancelled())throw Error('cancelled');const bytes=new Uint8Array(await file.slice(pos,pos+4194304).arrayBuffer());for(let i=0,n=bytes.length;i<n;i++)value=table[(value^bytes[i])&255]^(value>>>8);}return (value^0xffffffff)>>>0};
+  const prepare=async(files,cancelled,progress,zipName)=>{
     clear();if(!files.length)throw Error('empty');
     if(files.length>65535||files.reduce((n,f)=>n+f.size+256,0)>0xffffffff)throw Error('large');
     let blob,name;
@@ -26,7 +26,7 @@
       const centralSize=central.reduce((n,p)=>n+p.byteLength,0),end=header(22);
       if(offset+centralSize+22>0xffffffff)throw Error('large');
       end.view.setUint32(0,0x06054b50,true);end.view.setUint16(8,files.length,true);end.view.setUint16(10,files.length,true);end.view.setUint32(12,centralSize,true);end.view.setUint32(16,offset,true);
-      blob=new Blob([...parts,...central,end.bytes],{type:'application/zip'});name='PhotoPick-'+new Date().toISOString().slice(0,10)+'.zip';
+      blob=new Blob([...parts,...central,end.bytes],{type:'application/zip'});name=zipName||('PhotoPick-'+new Date().toISOString().slice(0,10)+'.zip');
     }
     if(cancelled())throw Error('cancelled');
     current={url:URL.createObjectURL(blob),name,count:files.length,zip:files.length>1};return current;

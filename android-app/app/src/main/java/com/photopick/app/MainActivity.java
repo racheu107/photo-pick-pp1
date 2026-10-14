@@ -48,6 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MainActivity extends Activity {
     private static final String HOST = "app.photopick.local";
     private static final int FOLDER = 10, FILES = 11;
+    // PP-1 화면 바탕(밝은 면)과 평가 화면 뷰파인더(어두운 면)
+    private static final int LIGHT = android.graphics.Color.rgb(237, 237, 235), DARK = android.graphics.Color.rgb(18, 18, 18);
     private WebView web;
     private FrameLayout container;
     private AppUpdater updater;
@@ -71,7 +73,7 @@ public class MainActivity extends Activity {
         updater = new AppUpdater(this);
         web = new WebView(this);
         container = new FrameLayout(this);
-        container.setBackgroundColor(android.graphics.Color.WHITE);
+        container.setBackgroundColor(LIGHT);
         container.addView(web, new FrameLayout.LayoutParams(-1, -1));
         setContentView(container);
         container.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -119,12 +121,25 @@ public class MainActivity extends Activity {
                     }
                     if (path == null || path.contains("..")) return empty(403);
                     String file = path.equals("/") ? "index.html" : path.substring(1);
-                    String type = file.endsWith(".css") ? "text/css" : file.endsWith(".js") ? "application/javascript" : file.endsWith(".png") ? "image/png" : "text/html";
+                    String type = mime(file);
                     return new WebResourceResponse(type, "UTF-8", getAssets().open("www/" + file));
                 } catch (Exception e) { return empty(404); }
             }
         });
         web.loadUrl("https://" + HOST + "/");
+    }
+
+    private static String mime(String file) {
+        String f = file.toLowerCase(java.util.Locale.ROOT);
+        if (f.endsWith(".css")) return "text/css";
+        if (f.endsWith(".js")) return "application/javascript";
+        if (f.endsWith(".png")) return "image/png";
+        if (f.endsWith(".jpg") || f.endsWith(".jpeg")) return "image/jpeg";
+        if (f.endsWith(".svg")) return "image/svg+xml";
+        if (f.endsWith(".woff2")) return "font/woff2";
+        if (f.endsWith(".json") || f.endsWith(".webmanifest")) return "application/json";
+        if (f.endsWith(".txt")) return "text/plain";
+        return "text/html";
     }
 
     private WebResourceResponse empty(int status) {
@@ -145,7 +160,9 @@ public class MainActivity extends Activity {
 
     void whenUpdateIdle(boolean manual, Runnable action) {
         if (saving) return;
-        web.evaluateJavascript("typeof state !== 'undefined' && state.screen === 'home' && !document.querySelector('#layer').innerHTML", result -> {
+        // 직접 '앱 업데이트 확인'을 누른 경우에는 어느 화면에서든 바로 안내
+        if (manual) { action.run(); return; }
+        web.evaluateJavascript("typeof photoPickIdle === 'function' ? photoPickIdle() : (typeof state !== 'undefined' && state.screen === 'home' && !document.querySelector('#layer').innerHTML)", result -> {
             if ("true".equals(result) && !saving && hasWindowFocus()) action.run();
         });
     }
@@ -155,7 +172,7 @@ public class MainActivity extends Activity {
     public class Bridge {
         @JavascriptInterface public void setPhotoFocus(boolean focused) {
             runOnUiThread(() -> {
-                int color = focused ? android.graphics.Color.rgb(17,19,23) : android.graphics.Color.WHITE;
+                int color = focused ? DARK : LIGHT;
                 container.setBackgroundColor(color); getWindow().setStatusBarColor(color); getWindow().setNavigationBarColor(color);
                 int flags = getWindow().getDecorView().getSystemUiVisibility();
                 int light = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;

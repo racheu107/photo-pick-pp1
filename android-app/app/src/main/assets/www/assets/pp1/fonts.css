@@ -4,3 +4,5 @@
 @font-face{font-family:"Hanken Grotesk";font-weight:700;font-display:swap;src:url(fonts/hanken-grotesk-latin-700-normal.woff2) format("woff2")}
 @font-face{font-family:"JetBrains Mono";font-weight:400;font-display:swap;src:url(fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:"JetBrains Mono";font-weight:500;font-display:swap;src:url(fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2")}
+/* DSEG7 Classic (SIL OFL 1.1, keshikan) — CCD 날짜 각인용 7세그먼트 숫자 */
+@font-face{font-family:"DSEG7";font-weight:400;font-display:swap;src:url(fonts/DSEG7Classic-Regular.woff2) format("woff2")}
