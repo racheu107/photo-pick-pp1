@@ -4,7 +4,7 @@
    onNativeSaveProgress, onNativeSaveComplete, nativeBack)은 이전 버전과 같은 이름과 인자를 받는다. */
 (() => {
 'use strict';
-const VERSION = 'PP-1 0.5.1';
+const VERSION = 'PP-1 0.5.2';
 const NATIVE = window.PhotoPickAndroid || null;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const G = ['skip', 'keep', 'best'];
@@ -420,7 +420,7 @@ function menu() {
   const inSet = S.photos.length && S.dataset;
   openLayer(`<h2>Photo Pick</h2><div class="menu-list">
     <button class="menu-item" data-act="guide">${ic('help')}사용 방법 보기</button>
-    <button class="menu-item" data-act="folder" data-another="1">${ic('folder')}다른 폴더 열기</button>
+    <button class="menu-item" data-act="folder">${ic('folder')}다른 폴더 열기</button>
     ${inSet ? `<button class="menu-item" data-act="to-dates">${ic('cal')}날짜 다시 고르기</button><button class="menu-item danger" data-act="clear">${ic('trash')}이 폴더 평가 지우기<small>${S.photos.filter(p => R[p.key]).length}장</small></button>` : ''}
     ${NATIVE?.checkUpdates ? `<button class="menu-item" data-act="updates">${ic('down')}앱 업데이트 확인</button>` : ''}
     ${NATIVE ? '' : `<a class="menu-item" href="${APK}" target="_blank" rel="noopener">${ic('android')}<span>Android 앱 받기<br><small style="margin:0">갤러리에 바로 저장돼요</small></span></a>`}
@@ -469,7 +469,7 @@ async function readFiles(files, folder, dataset = 'real') {
   load(items, folder, dataset);
 }
 function load(items, folder, dataset) {
-  if (!items.length) { S.msg = 'JPEG 사진을 읽지 못했어요. 다른 폴더를 골라 주세요.'; S.screen = 'home'; render(); return; }
+  if (!items.length) { S.msg = NATIVE ? '이 폴더에서 JPEG 사진을 찾지 못했어요. 「SD카드 폴더 열기」를 눌러 SD카드(또는 DCIM 폴더)를 골라 주세요.' : 'JPEG 사진을 읽지 못했어요. 다른 폴더를 골라 주세요.'; S.screen = 'home'; render(); return; }
   fullCache.forEach(u => URL.revokeObjectURL(u)); fullCache.clear(); thumbQ.length = 0;
   S.photos.forEach(p => { if (p.thumb) URL.revokeObjectURL(p.thumb); });
   items.sort((a, b) => (a.at || '9999').localeCompare(b.at || '9999') || a.path.localeCompare(b.path));
@@ -500,7 +500,9 @@ async function startDemo() {
   } catch (_) { S.msg = '예시 사진을 불러오지 못했어요. 다시 시도해 주세요.'; S.screen = 'home'; render(); }
 }
 const input = id => { const el = $(id); el.value = ''; el.click(); };
-function chooseFolder(another) { closeLayerSilently(); if (NATIVE) (another && NATIVE.chooseAnotherFolder) ? NATIVE.chooseAnotherFolder() : NATIVE.chooseFolder(); else input('#dir-input'); }
+// 기기 앱: 「SD카드 폴더 열기」는 항상 저장소 선택 화면을 연다(연결된 SD카드 루트에서 시작, 0.3.0과 같은 동작).
+// 기억한 폴더를 바로 여는 것은 「이어서 고르기」에서만.
+function chooseFolder(remembered) { closeLayerSilently(); if (NATIVE) (!remembered && NATIVE.chooseAnotherFolder) ? NATIVE.chooseAnotherFolder() : NATIVE.chooseFolder(); else input('#dir-input'); }
 function chooseFiles() { if (NATIVE) NATIVE.chooseFiles(); else input('#file-input'); }
 function closeLayerSilently() { if (S.layer) { S.layer = null; root.inert = false; renderLayer(); } }
 $('#dir-input').addEventListener('change', e => readFiles(e.target.files));
@@ -1053,7 +1055,7 @@ document.addEventListener('click', e => {
     case 'guide': closeLayerSilently(); guide(); break;
     case 'close-layer': closeLayer(); break;
     case 'sheet-ok': { const fn = S.layer?.onOk; S.layer = null; root.inert = false; renderLayer(); syncHistory(); fn?.(); break; }
-    case 'folder': chooseFolder(!!b.dataset.another); break;
+    case 'folder': chooseFolder(false); break;
     case 'updates': closeLayerSilently(); try { NATIVE?.checkUpdates?.(); } catch (_) {} break;
     case 'files': chooseFiles(); break;
     case 'demo': startDemo(); break;
@@ -1061,6 +1063,7 @@ document.addEventListener('click', e => {
       const last = store.last;
       if (S.photos.length && last && S.folder === last.folder && last.keys?.[0] === S.photos[0]?.key) { const ids = selIds(); if (!ids.length) { to('dates'); break; } S.cur = ids.find(id => !R[S.photos[id].key]) ?? (ids.includes(S.cur) ? S.cur : ids[0]); S.view = 'one'; to('rate'); break; }
       if (last?.dataset === 'demo') { startDemo(); break; }
+      if (NATIVE) { chooseFolder(true); break; }
       openLayer(`<h2>같은 폴더를 다시 열어 주세요</h2><p>${esc(last?.folder || '')} 폴더를 열면 평가한 ${last?.rated || 0}장이 그대로 이어져요.<br>브라우저는 보안 때문에 폴더를 기억하지 못해요.</p><button class="pp-btn" data-act="folder" data-autofocus><span class="pp-led"></span>폴더 열기</button><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button>`, '이어서 고르기');
       break;
     }
