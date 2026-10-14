@@ -1112,3 +1112,16 @@ body::after{content:"";position:fixed;inset:0;z-index:2147483000;background:url(
 .pv-key{flex-direction:column;gap:.15rem;width:auto;min-width:3.5rem;padding:0 .5rem;font:700 .75rem/1 var(--pp-font-ko);color:var(--pp-ink)}
 .pv-key svg{width:1.125rem;height:1.125rem}
 .pv-key .pp-led{display:none}
+/* 사진이 작은 화면에서도 잘리지 않게: 격자 칸 높이를 확정해 max-height:100%가 먹도록 */
+.view .ph{grid-template-rows:100%;grid-template-columns:100%}
+/* 결과: 범위 선택과 떨어진 한 줄짜리 보기 전환 */
+.picks-bar{display:flex;align-items:center;justify-content:space-between;gap:.5rem;min-height:2.75rem;margin:-.25rem 0 -.375rem;flex:none}
+.picks-bar>span{font-size:var(--pp-t-sm);color:var(--pp-muted)}
+.picks-bar>span b{font:600 var(--pp-t-sm)/1 var(--pp-font-num);color:var(--pp-ink)}
+.pv-link{display:inline-flex;align-items:center;gap:.35rem;min-height:2.75rem;padding:0 .25rem;font-size:var(--pp-t-sm);color:var(--pp-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--pp-line, #C9C8C2)}
+.pv-link svg{width:1.125rem;height:1.125rem;flex:none}
+@media (max-height:700px){.picks-bar{min-height:2.25rem;margin:-.375rem 0 -.5rem}.pv-link{min-height:2.75rem}}
+/* 작은 화면: 제스처 안내는 한 줄로 남김 */
+@media (max-height:700px){.vf .hintline{display:flex;font-size:.75rem;padding:.25rem .7rem;gap:.6rem}.vf .hintline span:last-child{display:none}}
+.pv-link svg{fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.sheetgrid.feed{overflow-x:hidden;overflow-y:auto}

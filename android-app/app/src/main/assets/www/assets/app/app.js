@@ -4,7 +4,7 @@
    onNativeSaveProgress, onNativeSaveComplete, nativeBack)은 이전 버전과 같은 이름과 인자를 받는다. */
 (() => {
 'use strict';
-const VERSION = 'PP-1 0.5.0';
+const VERSION = 'PP-1 0.5.1';
 const NATIVE = window.PhotoPickAndroid || null;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const G = ['skip', 'keep', 'best'];
@@ -23,6 +23,7 @@ const P = {
   back: '<path d="M15 5l-7 7 7 7"/>', next: '<path d="M9 5l7 7-7 7"/>', menu: '<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
   skip: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>', keep: '<circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/>',
   best: '<path d="M12 3.6l2.5 5.2 5.7.8-4.1 4 1 5.6-5.1-2.7-5.1 2.7 1-5.6-4.1-4 5.7-.8z"/>',
+  center: '<circle cx="12" cy="12" r="7.5"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/><circle cx="12" cy="12" r="1.2"/>',
   feed: '<rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M4 9h16M9.3 9v11.5M14.7 9v11.5M4 14.7h16"/><circle cx="7" cy="6.2" r=".9"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1"/>',
   one: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 16l5-4.5 4 3.5 3-2.5 5 4"/><circle cx="15.5" cy="9.5" r="1.5"/>', undo: '<path d="M9 13L4 8l5-5"/><path d="M4 8h10.5a5.5 5.5 0 0 1 0 11H11"/>',
@@ -310,7 +311,8 @@ function results() {
   <button class="icon-btn" data-act="menu" aria-label="메뉴">${ic('menu')}</button></div>
   ${readout({ id: 'res-n', n: pk.length, label: NATIVE ? '휴대폰에 저장할 사진' : '내보낼 사진', ctx: `평가 <b>${done}/${ids.length}</b>`, sub: S.scope === 'best' ? '매우 좋음만' : '좋음 이상', prog: ids.length ? done / ids.length : 0, cls: 'res-hero' })}
   <div class="legend" aria-label="평가별 장수">${leg('best', '매우 좋음')}${leg('keep', '좋음')}${leg('skip', '별로')}</div>
-  <div class="seg-row"><div class="seg" role="radiogroup" aria-label="저장할 사진"><button class="opt" role="radio" aria-checked="${S.scope === 'best'}" data-act="scope" data-s="best"><span class="pp-led${S.scope === 'best' ? ' is-on' : ''}"></span>매우 좋음만 <b>${c.best}</b></button><button class="opt" role="radio" aria-checked="${S.scope === 'combined'}" data-act="scope" data-s="combined"><span class="pp-led${S.scope === 'combined' ? ' is-on' : ''}"></span>좋음 이상 <b>${c.best + c.keep}</b></button></div>${pk.length ? `<button class="key pv-key" data-act="pv" data-v="${S.picksView === 'feed' ? 'grid' : 'feed'}" aria-label="${S.picksView === 'feed' ? '사진 모아보기로 돌아가기' : '인스타 피드처럼 미리보기'}">${S.picksView === 'feed' ? ic('grid') : ic('feed')}<span>${S.picksView === 'feed' ? '사진' : '피드'}</span></button>` : ''}</div>
+  <div class="seg-row"><div class="seg" role="radiogroup" aria-label="저장할 사진"><button class="opt" role="radio" aria-checked="${S.scope === 'best'}" data-act="scope" data-s="best"><span class="pp-led${S.scope === 'best' ? ' is-on' : ''}"></span>매우 좋음만 <b>${c.best}</b></button><button class="opt" role="radio" aria-checked="${S.scope === 'combined'}" data-act="scope" data-s="combined"><span class="pp-led${S.scope === 'combined' ? ' is-on' : ''}"></span>좋음 이상 <b>${c.best + c.keep}</b></button></div></div>
+  ${pk.length ? `<div class="picks-bar"><span>고른 사진 <b>${pk.length}</b>장</span><button class="text-btn pv-link" data-act="pv" data-v="${S.picksView === 'feed' ? 'grid' : 'feed'}">${S.picksView === 'feed' ? `${ic('grid')}모아보기로` : `${ic('feed')}인스타 피드로 미리보기`}</button></div>` : ''}
   <div class="picks-wrap grow">${pk.length ? (S.picksView === 'feed' ? feed(pk) : `<div class="sheetgrid" style="--cols:${pk.length <= 4 ? 2 : pk.length <= 9 ? 3 : 4}" id="picks">${pk.map(p => tile(p)).join('')}</div>`) : `<div class="sheetgrid"><p class="empty">${ids.length - c.unrated ? '저장할 사진이 없어요.<br>위에서 범위를 바꾸거나 사진을 더 평가해 주세요.' : '아직 평가한 사진이 없어요.'}</p></div>`}
   </div>
   <button class="pp-btn" data-act="save" ${pk.length ? '' : 'disabled'}><span class="pp-led"></span>${pk.length ? `${S.scope === 'best' ? '매우 좋음' : '좋음 이상'} ${pk.length}장 ${NATIVE ? '저장' : '내보내기'}` : '저장할 사진 없음'}</button>
@@ -364,9 +366,9 @@ function done() {
   <div class="collage-wrap grow"><div class="collage" id="collage" aria-hidden="true" style="--cols:${cols};--rows:${Math.ceil(Math.min(s.items.length, cols * 3) / cols)}">${shown.map(p => `<span>${tImg(p)}</span>`).join('')}${more > 0 ? `<span class="more">+${more}</span>` : ''}</div></div>
   <div class="oledbar"><span>→ ${NATIVE ? '갤러리 · Photo Pick 앨범' : esc(f?.name || '')}</span><em>${warn ? 'check' : NATIVE ? 'done' : 'ready'}</em></div>
   <div class="done-copy"><h1>${title}</h1><p>${sub}</p></div>
-  ${NATIVE ? (r.failed ? `<button class="pp-btn" data-act="save"><span class="pp-led"></span>실패한 사진 다시 저장</button>` : '') + (r.saved + r.skipped ? `<button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}꾸미기 · 스토리 카드</button>` : '') + `<div class="row2"><button class="pp-btn pp-btn--key" data-act="to-dates">다른 날짜 고르기</button><button class="pp-btn ${r.failed ? 'pp-btn--key' : ''}" data-act="to-home">${r.failed ? '' : '<span class="pp-led"></span>'}처음으로</button></div>` :
+  ${NATIVE ? (r.failed ? `<button class="pp-btn" data-act="save"><span class="pp-led"></span>실패한 사진 다시 저장</button>` : '') + (r.saved + r.skipped ? `<button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}스토리 카드 · 날짜 각인</button>` : '') + `<div class="row2"><button class="pp-btn pp-btn--key" data-act="to-dates">다른 날짜 고르기</button><button class="pp-btn ${r.failed ? 'pp-btn--key' : ''}" data-act="to-home">${r.failed ? '' : '<span class="pp-led"></span>'}처음으로</button></div>` :
     `${canShare(s) ? `<button class="pp-btn" data-act="share"><span class="pp-led"></span>${ic('share')}공유 · 갤러리에 저장</button>` : s.items.length > 1 && s.items.length <= 20 ? `<button class="pp-btn" data-act="each"><span class="pp-led"></span>${ic('down')}사진 ${s.items.length}장 따로 받기</button>` : ''}
-    <div class="row3 even"><a class="pp-btn ${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? 'pp-btn--key' : ''}" href="${f?.url || '#'}" download="${esc(f?.name || 'photos')}" data-act="dl">${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? '' : '<span class="pp-led"></span>'}${f?.zip ? 'ZIP 받기' : 'JPEG 받기'}</a><button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}꾸미기</button><button class="pp-btn pp-btn--key" data-act="to-home">처음으로</button></div>
+    <div class="row3 even"><a class="pp-btn ${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? 'pp-btn--key' : ''}" href="${f?.url || '#'}" download="${esc(f?.name || 'photos')}" data-act="dl">${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? '' : '<span class="pp-led"></span>'}${f?.zip ? 'ZIP 받기' : 'JPEG 받기'}</a><button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}스토리 카드</button><button class="pp-btn pp-btn--key" data-act="to-home">처음으로</button></div>
     <button class="text-btn link" data-act="to-dates">다른 날짜 고르기 ${ic('next')}</button>`}`;
 }
 const mb = items => { const t = items.reduce((n, p) => n + (p.size || 0), 0); return t ? (t > 1e9 ? (t / 1e9).toFixed(2) + ' GB' : (t / 1e6).toFixed(1) + ' MB') : ''; };
@@ -660,7 +662,7 @@ function stToolsHtml() {
     <button class="key" data-act="st-up" ${st.sel <= 0 ? 'disabled' : ''} aria-label="위로 옮기기">${ic('up')}</button>
     <button class="key" data-act="st-down" ${st.sel >= n - 1 ? 'disabled' : ''} aria-label="아래로 옮기기">${ic('dn')}</button>
     <button class="key st-swap${st.pick ? ' is-down' : ''}" data-act="st-pick" aria-pressed="${st.pick}"><span class="pp-led${st.pick ? ' is-on' : ''}"></span>사진 바꾸기</button>
-    <button class="key" data-act="st-center" aria-label="가운데로 맞추기">${ic('one')}</button>
+    <button class="key" data-act="st-center" aria-label="크롭 위치 처음으로">${ic('center')}</button>
   </div>
   ${st.pick ? `<div class="st-cands" role="listbox" aria-label="바꿀 사진">${c.map(p => `<button class="st-cand${used.has(p.id) ? ' used' : ''}" data-act="st-use" data-id="${p.id}" role="option" aria-selected="${st.picks[st.sel]?.id === p.id}" aria-label="${esc(p.name)} · ${LABEL[R[p.key]] || '미평가'}${used.has(p.id) ? ' · 이미 카드에 있음(서로 자리 바꿈)' : ''}">${tImg(p)}${R[p.key] === 'best' ? '<span class="st-star">' + ic('best') + '</span>' : ''}</button>`).join('')}</div>` : ''}`;
 }
@@ -670,7 +672,7 @@ function stEditorHtml() {
     <div class="seg st-n" role="radiogroup" aria-label="줄 수">${[3, 4].map(n => `<button class="opt" role="radio" aria-checked="${st.rows === n}" data-act="st-rows" data-n="${n}" ${n > max ? 'disabled' : ''}><span class="pp-led${st.rows === n ? ' is-on' : ''}"></span>${n}줄</button>`).join('')}</div></div>
     <div class="st-stage">${stCardHtml()}</div>
     <div class="st-edit" id="st-edit">${stToolsHtml()}</div>
-    <div class="row2"><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button><button class="pp-btn" data-act="st-make" data-autofocus>${ic('down')}카드 만들기</button></div>`;
+    <div class="row2"><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button><button class="pp-btn" data-act="st-make" data-autofocus>카드 완성 ${ic('next')}</button></div>`;
 }
 function stRefresh(part) {
   const sheet = $('.story-editor'); if (!sheet || !S.st) return;
@@ -725,7 +727,8 @@ function stUse(id) {
   if (other === i) return;
   if (other >= 0) [st.picks[i], st.picks[other]] = [st.picks[other], st.picks[i]];
   else st.picks[i] = { id, fx: .5, fy: ST_FY };
-  st.pick = false; stRefresh(); haptic(8);
+  st.pick = false; st.sel = -1; stRefresh(); haptic(8);
+  const r = $$('.st-row')[i]; if (r && motion()) r.animate([{ opacity: .3, transform: 'scale(.97)' }, { opacity: 1, transform: 'none' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
 }
 function stRows(n) {
   const st = S.st, c = storyCands(); n = Math.min(n, c.length); if (n === st.picks.length) return;
@@ -747,7 +750,7 @@ async function stMake() {
       ${nat ? `<button class="pp-btn" data-act="story-native-share" data-autofocus>${ic('share')}저장하고 공유 (인스타 스토리)</button>` : share ? `<button class="pp-btn" data-act="story-share" data-autofocus>${ic('share')}인스타 스토리로 공유</button>` : ''}
       <div class="row3 even"><button class="pp-btn pp-btn--key" data-act="st-back">다시 고치기</button>${nat ? `<button class="pp-btn pp-btn--key" data-act="story-native-save">${ic('down')}갤러리 저장</button>` : `<a class="pp-btn ${share ? 'pp-btn--key' : ''}" href="${S.storyUrl}" download="${file.name}" data-act="saved-toast" ${share ? '' : 'data-autofocus'}>이미지 저장</a>`}<button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '스토리 카드', 'story-sheet');
     ejectCard();
-  } catch (_) { if (S.layer === tok) { toast('카드를 만들지 못했어요'); if (btn) { btn.disabled = false; btn.innerHTML = `${ic('down')}카드 만들기`; } } }
+  } catch (_) { if (S.layer === tok) { toast('카드를 만들지 못했어요'); if (btn) { btn.disabled = false; btn.innerHTML = `카드 완성 ${ic('next')}`; } } }
   finally { S.storyBusy = false; }
 }
 async function share() {
@@ -759,10 +762,12 @@ async function share() {
 /* ── 평가 동작 ────────────────────────── */
 const haptic = (ms = 10) => { try { NATIVE?.ratingHaptic ? NATIVE.ratingHaptic() : navigator.vibrate?.(ms); } catch (_) {} };
 let swapTok = 0, busy = false, busyAnim = null, pendingNav = null, navSeq = 0, completeTimer = null;
+// 날아가는 중인 사진이 있으면 바로 끝내고 다음 사진으로 (연타·연속 끌기 때 평가가 빠지지 않게)
+function flushNav(quiet) { if (!busy) return; const t = pendingNav; navSeq++; busyAnim?.cancel(); busyAnim = null; busy = false; pendingNav = null; if (t != null) go(t, 1, quiet ? 'quiet' : true, navSeq); }
 function setRating(p, g) { if (g) R[p.key] = g; else delete R[p.key]; }
 function doRate(g, via = 'key') {
   if (S.screen !== 'rate' || S.view !== 'one' || !S.photos[S.cur]) return;
-  if (busy) { const t = pendingNav; navSeq++; busyAnim?.cancel(); busyAnim = null; busy = false; pendingNav = null; if (t != null) go(t, 1, true, navSeq); }
+  flushNav();
   const ids = selIds(), p = S.photos[S.cur], before = R[p.key] || null, next = g;
   const nowT = performance.now(); if (lastRateAt && nowT - lastRateAt < 20000) rateTimes.push(nowT - lastRateAt); lastRateAt = nowT;
   const lastSame = before === g && ids.indexOf(p.id) === ids.length - 1;
@@ -815,12 +820,12 @@ function go(id, dir = 1, fromRate = false, seq) {
   img.style.transform = ''; img.getAnimations().forEach(a => a.cancel());
   // 새 사진은 디코드가 끝난 뒤에 바꿔 끼운다 (흰 프레임·이전 사진 깜빡임 방지)
   const url = fullUrl(p), tok = ++swapTok; img.alt = p.name;
-  if (fromRate) img.style.opacity = '0';
+  if (fromRate === true) img.style.opacity = '0';
   let shown = false;
   const show = () => {
     if (shown || tok !== swapTok || $('#photo') !== img) return; shown = true;
     img.src = url; img.style.opacity = '';
-    if (!motion()) return;
+    if (!motion() || fromRate === 'quiet') return;
     if (fromRate) img.animate([{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
     else img.animate([{ transform: `translateX(${dir * 22}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
   };
@@ -896,7 +901,7 @@ function applyZoom(anim) {
   if (anim && motion()) img.animate([{ transform: img.style.transform || 'none' }, { transform: t }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
   img.style.transform = Z.s === 1 && !Z.x && !Z.y ? '' : t;
   const hl = $('.hintline'); if (hl) hl.innerHTML = Z.s > 1.01 ? '<span>끌어서 이동</span><span>두 번 탭하면 원래대로</span>' : HINT;
-  const chip = $('#zoomchip'); if (chip) { chip.hidden = Z.s <= 1.01; chip.textContent = `${Math.round(Z.s * img.offsetWidth / (img.naturalWidth || img.offsetWidth) * 100)}%`; }
+  const chip = $('#zoomchip'); if (chip) { chip.hidden = Z.s <= 1.01; chip.textContent = `×${Z.s < 9.95 ? Z.s.toFixed(1) : Math.round(Z.s)}`; }
 }
 function clampZoom() {
   const img = $('#photo'), v = $('#view'); if (!img || !v) return;
@@ -914,7 +919,7 @@ function resetZoom() { Z.s = 1; Z.x = 0; Z.y = 0; const hl = $('.hintline'); if 
 function toggleZoom(cx, cy) {
   const img = $('#photo'), v = $('#view'); if (!img || !v) return;
   if (Z.s > 1.01) { Z.s = 1; Z.x = 0; Z.y = 0; applyZoom(true); return; }
-  const full = Math.max(1.6, (img.naturalWidth || img.offsetWidth * 2) / img.offsetWidth);
+  const full = Math.min(maxZoom(), 2.5); // 두 번 탭은 2.5배 (고화소 사진이 15배로 튀지 않게)
   const r = v.getBoundingClientRect(), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2);
   Z.s = full; Z.x = -px * (full - 1); Z.y = -py * (full - 1); clampZoom(); applyZoom(true); haptic(6); upgradeDetail();
 }
@@ -935,11 +940,12 @@ function bindGestures() {
       return;
     }
     if (pts.size > 2) return;
+    flushNav(true);
     start = { x: e.clientX, y: e.clientY, zx: Z.x, zy: Z.y, t: performance.now() }; moved = false;
   });
   v.addEventListener('pointermove', e => {
     if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    const img = $('#photo'); if (!img || busy) return;
+    const img = $('#photo'); if (!img) return;
     if (pinch && pts.size >= 2) {
       const [a, b] = [...pts.values()], c = center(), mx = (a.x + b.x) / 2 - c.x, my = (a.y + b.y) / 2 - c.y;
       Z.s = Math.max(1, Math.min(maxZoom(), pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d));
@@ -966,11 +972,14 @@ function bindGestures() {
       upgradeDetail(); return;
     }
     if (!start || pts.size) return;
-    const dx = e.clientX - start.x, dy = e.clientY - start.y, img = $('#photo'); start = null; hintKey(''); v.dataset.hint = '';
+    let dx = e.clientX - start.x, dy = e.clientY - start.y; const img = $('#photo'), s0t = start.t; start = null; hintKey(''); v.dataset.hint = '';
     if (e.type === 'pointercancel') { if (Z.s <= 1.01) springBack(img); return; }
     if (!moved) { const now = performance.now(); if (now - lastTap < 300) { lastTap = 0; toggleZoom(e.clientX, e.clientY); } else lastTap = now; return; }
     if (Z.s > 1.01) { upgradeDetail(); return; }
     const ids = selIds(), i = ids.indexOf(S.cur), horiz = Math.abs(dx) > Math.abs(dy);
+    // 짧고 빠르게 튕겨도 인식 (거리 35px 이상 + 속도 0.5px/ms 이상)
+    const dt = Math.max(1, performance.now() - (s0t || 0)), flick = Math.hypot(dx, dy) > 35 && Math.hypot(dx, dy) / dt > .5;
+    if (flick) { if (horiz) dx = Math.sign(dx) * 61; else dy = Math.sign(dy) * 71; }
     if (horiz && Math.abs(dx) > 60) { const t = ids[i + (dx < 0 ? 1 : -1)]; if (t != null) { go(t, dx < 0 ? 1 : -1); return; } }
     else if (!horiz && (dy > 70 || dy < -70)) {
       doRate(dy > 0 ? 'keep' : 'best', 'swipe');
@@ -1097,10 +1106,10 @@ document.addEventListener('click', e => {
     case 'st-down': stMove(1); break;
     case 'st-pick': S.st.pick = !S.st.pick; stRefresh('tools'); break;
     case 'st-use': stUse(+b.dataset.id); break;
-    case 'st-center': { const k = S.st.picks[S.st.sel]; if (k) { k.fx = .5; k.fy = .5; stRefresh(); } break; }
+    case 'st-center': { const k = S.st.picks[S.st.sel]; if (k) { k.fx = .5; k.fy = ST_FY; stRefresh(); } break; }
     case 'st-make': stMake(); break;
     case 'st-back': if (S.st) { openLayer(stEditorHtml(), '스토리 카드 만들기', 'story-editor'); stBind(); } break;
-    case 'extras': openLayer(`<h2>사진 꾸미기</h2><p>원본은 그대로 두고, 공유하기 좋은 이미지를 새로 만들어요.</p>
+    case 'extras': openLayer(`<h2>스토리 카드 · 꾸미기</h2><p>원본은 그대로 두고, 인스타에 올리기 좋은 이미지를 새로 만들어요.</p>
       <div class="menu-list"><button class="menu-item" data-act="story" ${S.storyBusy ? 'disabled' : ''}>${ic('best')}<span>스토리 카드<br><small style="margin:0">매우 좋음 3~4장을 줄로 · 1080×1920</small></span></button>
       <button class="menu-item" data-act="imprint" ${S.save.items.length > 30 || S.storyBusy ? 'disabled' : ''}>${ic('cal')}<span>날짜 각인 사진 ${S.save.items.length}장<br><small style="margin:0">${S.save.items.length > 30 ? '30장 이하일 때 만들 수 있어요' : "디카처럼 '26 10 11 주황 날짜"}</small></span></button></div>
       <button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button>`, '사진 꾸미기'); break;
