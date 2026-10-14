@@ -59,6 +59,7 @@ public class MainActivity extends Activity {
     private final Map<String, Photo> photos = new ConcurrentHashMap<>();
     private final AtomicBoolean cancelled = new AtomicBoolean();
     private volatile boolean saving = false;
+    private final List<Uri> savedImages = new ArrayList<>();
 
     private static class Photo {
         String key, name, path;
@@ -216,6 +217,47 @@ public class MainActivity extends Activity {
             worker.execute(() -> save(keys));
         }
         @JavascriptInterface public void cancelSave() { cancelled.set(true); }
+        // 꾸미기에서 만든 이미지(스토리 카드·날짜 각인 사본)를 갤러리 Photo Pick 앨범에 저장
+        @JavascriptInterface public void saveImage(String name, String base64, boolean reset) {
+            worker.execute(() -> {
+                boolean ok = false; Uri destination = null;
+                try {
+                    if (reset) synchronized (savedImages) { savedImages.clear(); }
+                    byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, (name == null || name.isEmpty() ? "PhotoPick.jpg" : name).replaceAll("[\\\\/\\p{Cntrl}]", "_"));
+                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/Photo Pick");
+                    values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                    destination = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                    if (destination == null) throw new java.io.IOException();
+                    try (OutputStream output = getContentResolver().openOutputStream(destination)) {
+                        if (output == null) throw new java.io.IOException();
+                        output.write(bytes); output.flush();
+                    }
+                    values.clear(); values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    getContentResolver().update(destination, values, null, null);
+                    synchronized (savedImages) { savedImages.add(destination); }
+                    ok = true;
+                } catch (Exception e) {
+                    if (destination != null) try { getContentResolver().delete(destination, null, null); } catch (Exception ignored) { }
+                }
+                event("onNativeImageSaved", json("ok", ok, "name", name));
+            });
+        }
+        // 방금 저장한 이미지들로 공유 창 열기 (인스타 스토리 등)
+        @JavascriptInterface public void shareSavedImages() {
+            runOnUiThread(() -> {
+                ArrayList<Uri> uris;
+                synchronized (savedImages) { uris = new ArrayList<>(savedImages); }
+                if (uris.isEmpty()) return;
+                Intent send = new Intent(uris.size() == 1 ? Intent.ACTION_SEND : Intent.ACTION_SEND_MULTIPLE);
+                send.setType("image/jpeg");
+                if (uris.size() == 1) send.putExtra(Intent.EXTRA_STREAM, uris.get(0)); else send.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                try { startActivity(Intent.createChooser(send, "공유하기")); } catch (Exception ignored) { }
+            });
+        }
         @JavascriptInterface public void closeApp() { runOnUiThread(() -> { if (!saving) finish(); }); }
     }
 

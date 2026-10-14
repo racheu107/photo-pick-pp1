@@ -1106,3 +1106,9 @@ body::after{content:"";position:fixed;inset:0;z-index:2147483000;background:url(
 .st-star{position:absolute;right:3px;bottom:3px;display:grid;place-items:center;width:1rem;height:1rem;border-radius:4px;background:rgba(14,14,14,.72)}
 .st-star svg{width:.6rem;height:.6rem;fill:#FF5A1F;stroke:#FF5A1F}
 @media (max-height:700px){.st-card{height:min(50dvh,24rem)}}
+
+/* ══ 0.5.1 ══ */
+/* 결과: 보기 전환 키에 글자 — 「피드」 미리보기 / 「사진」 모아보기 */
+.pv-key{flex-direction:column;gap:.15rem;width:auto;min-width:3.5rem;padding:0 .5rem;font:700 .75rem/1 var(--pp-font-ko);color:var(--pp-ink)}
+.pv-key svg{width:1.125rem;height:1.125rem}
+.pv-key .pp-led{display:none}

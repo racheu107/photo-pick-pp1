@@ -310,7 +310,7 @@ function results() {
   <button class="icon-btn" data-act="menu" aria-label="메뉴">${ic('menu')}</button></div>
   ${readout({ id: 'res-n', n: pk.length, label: NATIVE ? '휴대폰에 저장할 사진' : '내보낼 사진', ctx: `평가 <b>${done}/${ids.length}</b>`, sub: S.scope === 'best' ? '매우 좋음만' : '좋음 이상', prog: ids.length ? done / ids.length : 0, cls: 'res-hero' })}
   <div class="legend" aria-label="평가별 장수">${leg('best', '매우 좋음')}${leg('keep', '좋음')}${leg('skip', '별로')}</div>
-  <div class="seg-row"><div class="seg" role="radiogroup" aria-label="저장할 사진"><button class="opt" role="radio" aria-checked="${S.scope === 'best'}" data-act="scope" data-s="best"><span class="pp-led${S.scope === 'best' ? ' is-on' : ''}"></span>매우 좋음만 <b>${c.best}</b></button><button class="opt" role="radio" aria-checked="${S.scope === 'combined'}" data-act="scope" data-s="combined"><span class="pp-led${S.scope === 'combined' ? ' is-on' : ''}"></span>좋음 이상 <b>${c.best + c.keep}</b></button></div>${pk.length ? `<button class="key pv-key" data-act="pv" data-v="${S.picksView === 'feed' ? 'grid' : 'feed'}" aria-pressed="${S.picksView === 'feed'}" aria-label="피드 미리보기">${ic('feed')}</button>` : ''}</div>
+  <div class="seg-row"><div class="seg" role="radiogroup" aria-label="저장할 사진"><button class="opt" role="radio" aria-checked="${S.scope === 'best'}" data-act="scope" data-s="best"><span class="pp-led${S.scope === 'best' ? ' is-on' : ''}"></span>매우 좋음만 <b>${c.best}</b></button><button class="opt" role="radio" aria-checked="${S.scope === 'combined'}" data-act="scope" data-s="combined"><span class="pp-led${S.scope === 'combined' ? ' is-on' : ''}"></span>좋음 이상 <b>${c.best + c.keep}</b></button></div>${pk.length ? `<button class="key pv-key" data-act="pv" data-v="${S.picksView === 'feed' ? 'grid' : 'feed'}" aria-label="${S.picksView === 'feed' ? '사진 모아보기로 돌아가기' : '인스타 피드처럼 미리보기'}">${S.picksView === 'feed' ? ic('grid') : ic('feed')}<span>${S.picksView === 'feed' ? '사진' : '피드'}</span></button>` : ''}</div>
   <div class="picks-wrap grow">${pk.length ? (S.picksView === 'feed' ? feed(pk) : `<div class="sheetgrid" style="--cols:${pk.length <= 4 ? 2 : pk.length <= 9 ? 3 : 4}" id="picks">${pk.map(p => tile(p)).join('')}</div>`) : `<div class="sheetgrid"><p class="empty">${ids.length - c.unrated ? '저장할 사진이 없어요.<br>위에서 범위를 바꾸거나 사진을 더 평가해 주세요.' : '아직 평가한 사진이 없어요.'}</p></div>`}
   </div>
   <button class="pp-btn" data-act="save" ${pk.length ? '' : 'disabled'}><span class="pp-led"></span>${pk.length ? `${S.scope === 'best' ? '매우 좋음' : '좋음 이상'} ${pk.length}장 ${NATIVE ? '저장' : '내보내기'}` : '저장할 사진 없음'}</button>
@@ -364,7 +364,7 @@ function done() {
   <div class="collage-wrap grow"><div class="collage" id="collage" aria-hidden="true" style="--cols:${cols};--rows:${Math.ceil(Math.min(s.items.length, cols * 3) / cols)}">${shown.map(p => `<span>${tImg(p)}</span>`).join('')}${more > 0 ? `<span class="more">+${more}</span>` : ''}</div></div>
   <div class="oledbar"><span>→ ${NATIVE ? '갤러리 · Photo Pick 앨범' : esc(f?.name || '')}</span><em>${warn ? 'check' : NATIVE ? 'done' : 'ready'}</em></div>
   <div class="done-copy"><h1>${title}</h1><p>${sub}</p></div>
-  ${NATIVE ? (r.failed ? `<button class="pp-btn" data-act="save"><span class="pp-led"></span>실패한 사진 다시 저장</button>` : '') + `<div class="row2"><button class="pp-btn pp-btn--key" data-act="to-dates">다른 날짜 고르기</button><button class="pp-btn ${r.failed ? 'pp-btn--key' : ''}" data-act="to-home">${r.failed ? '' : '<span class="pp-led"></span>'}처음으로</button></div>` :
+  ${NATIVE ? (r.failed ? `<button class="pp-btn" data-act="save"><span class="pp-led"></span>실패한 사진 다시 저장</button>` : '') + (r.saved + r.skipped ? `<button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}꾸미기 · 스토리 카드</button>` : '') + `<div class="row2"><button class="pp-btn pp-btn--key" data-act="to-dates">다른 날짜 고르기</button><button class="pp-btn ${r.failed ? 'pp-btn--key' : ''}" data-act="to-home">${r.failed ? '' : '<span class="pp-led"></span>'}처음으로</button></div>` :
     `${canShare(s) ? `<button class="pp-btn" data-act="share"><span class="pp-led"></span>${ic('share')}공유 · 갤러리에 저장</button>` : s.items.length > 1 && s.items.length <= 20 ? `<button class="pp-btn" data-act="each"><span class="pp-led"></span>${ic('down')}사진 ${s.items.length}장 따로 받기</button>` : ''}
     <div class="row3 even"><a class="pp-btn ${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? 'pp-btn--key' : ''}" href="${f?.url || '#'}" download="${esc(f?.name || 'photos')}" data-act="dl">${canShare(s) || (s.items.length > 1 && s.items.length <= 20) ? '' : '<span class="pp-led"></span>'}${f?.zip ? 'ZIP 받기' : 'JPEG 받기'}</a><button class="pp-btn pp-btn--key story-key" data-act="extras">${ic('best')}꾸미기</button><button class="pp-btn pp-btn--key" data-act="to-home">처음으로</button></div>
     <button class="text-btn link" data-act="to-dates">다른 날짜 고르기 ${ic('next')}</button>`}`;
@@ -574,10 +574,11 @@ async function imprint() {
       const sg = $('#im-segs'); if (sg) { sg.innerHTML = segs(i + 1, s.items.length); sg.setAttribute('aria-valuenow', i + 1); } const n = $('#im-n'); if (n) n.textContent = `${i + 1} / ${s.items.length}장`;
     }
     if (!alive()) return;
-    S.imprintFiles = out; const url = URL.createObjectURL(out[0]); const share = !!navigator.canShare?.({ files: out });
+    S.imprintFiles = out; const url = URL.createObjectURL(out[0]); const nat = canNativeSave(), share = !nat && !!navigator.canShare?.({ files: out });
     openLayer(`<h2>날짜를 새긴 사진 ${out.length}장</h2><div class="story-prev"><img src="${url}" alt="날짜 각인 사진 미리보기"></div><p>원본 파일은 바뀌지 않았어요.</p>
       ${share ? `<button class="pp-btn" data-act="imprint-share" data-autofocus><span class="pp-led"></span>${ic('share')}공유 · 갤러리에 저장</button>` : ''}
-      <div class="row2"><button class="pp-btn ${share ? 'pp-btn--key' : ''}" data-act="imprint-each" ${share ? '' : 'data-autofocus'}>${ic('down')}${out.length}장 받기</button><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '날짜 각인 사진', 'story-sheet');
+      ${nat ? `<button class="pp-btn" data-act="imprint-native-share" data-autofocus>${ic('share')}저장하고 공유</button>` : ''}
+      <div class="row2"><button class="pp-btn ${share || nat ? 'pp-btn--key' : ''}" data-act="${nat ? 'imprint-native-save' : 'imprint-each'}" ${share || nat ? '' : 'data-autofocus'}>${ic('down')}${nat ? `갤러리에 ${out.length}장 저장` : `${out.length}장 받기`}</button><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '날짜 각인 사진', 'story-sheet');
   } catch (_) { if (alive()) { closeLayer(); toast('각인 사진을 만들지 못했어요'); } }
   finally { S.storyBusy = false; }
 }
@@ -601,6 +602,28 @@ function ejectCard() {
   addEventListener('devicemotion', shake);
   card.addEventListener('click', () => { a.playbackRate = Math.min(6, a.playbackRate + 1); });
   a.finished.then(done, () => {});
+}
+/* 기기 앱: 만든 이미지를 갤러리(Photo Pick 앨범)에 저장하고, 원하면 공유 창을 연다.
+   WebView는 <a download>와 Web Share로 파일을 내보낼 수 없어서 기기 쪽에 넘긴다 */
+const canNativeSave = () => !!NATIVE?.saveImage;
+let nativeSaveWait = null;
+window.onNativeImageSaved = r => { const w = nativeSaveWait; nativeSaveWait = null; w?.(r || {}); };
+const fileToB64 = f => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = rej; fr.readAsDataURL(f); });
+async function nativeSaveFiles(files, share) {
+  let ok = 0;
+  for (let i = 0; i < files.length; i++) {
+    const data = await fileToB64(files[i]);
+    const r = await new Promise(res => { nativeSaveWait = res; try { NATIVE.saveImage(files[i].name, data, i === 0); } catch (_) { nativeSaveWait = null; res({ ok: false }); } });
+    if (r.ok) ok++;
+  }
+  if (share && ok) { try { NATIVE.shareSavedImages?.(); } catch (_) {} }
+  return ok;
+}
+async function nativeExport(files, share) {
+  if (!files?.length) return;
+  toast(share ? '공유할 이미지를 준비하고 있어요' : '갤러리에 저장하고 있어요');
+  const ok = await nativeSaveFiles(files, share);
+  toast(ok === files.length ? (share ? '갤러리에 저장하고 공유 창을 열었어요' : `갤러리 Photo Pick 앨범에 ${ok}장 저장했어요`) : ok ? `${files.length}장 중 ${ok}장만 저장했어요` : '저장하지 못했어요. 저장 공간을 확인해 주세요');
 }
 /* ── 스토리 카드 (선택 기능) ──────────────
    매우 좋음 사진 3~4장을 자동으로 골라 세로 줄로 놓고, 사진 교체·순서 변경·끌어서 크롭 위치 조정 */
@@ -719,10 +742,10 @@ async function stMake() {
     if (S.layer !== tok || S.save !== s) return;
     if (S.storyUrl) URL.revokeObjectURL(S.storyUrl);
     S.storyFile = file; S.storyUrl = URL.createObjectURL(file);
-    const share = !!navigator.canShare?.({ files: [file] });
+    const share = !!navigator.canShare?.({ files: [file] }), nat = canNativeSave();
     openLayer(`<h2>스토리 카드가 나왔어요</h2><div class="story-prev eject"><span class="slot"><i></i></span><div class="card-out"><span class="cw"><img src="${S.storyUrl}" alt="고른 사진으로 만든 스토리 카드"><span class="dev" aria-hidden="true"></span></span></div></div><p class="dev-hint" aria-hidden="true">흔들면 더 빨리 나타나요</p>
-      ${share ? `<button class="pp-btn" data-act="story-share" data-autofocus>${ic('share')}인스타 스토리로 공유</button>` : ''}
-      <div class="row3 even"><button class="pp-btn pp-btn--key" data-act="st-back">다시 고치기</button><a class="pp-btn ${share ? 'pp-btn--key' : ''}" href="${S.storyUrl}" download="${file.name}" data-act="saved-toast" ${share ? '' : 'data-autofocus'}>이미지 저장</a><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '스토리 카드', 'story-sheet');
+      ${nat ? `<button class="pp-btn" data-act="story-native-share" data-autofocus>${ic('share')}저장하고 공유 (인스타 스토리)</button>` : share ? `<button class="pp-btn" data-act="story-share" data-autofocus>${ic('share')}인스타 스토리로 공유</button>` : ''}
+      <div class="row3 even"><button class="pp-btn pp-btn--key" data-act="st-back">다시 고치기</button>${nat ? `<button class="pp-btn pp-btn--key" data-act="story-native-save">${ic('down')}갤러리 저장</button>` : `<a class="pp-btn ${share ? 'pp-btn--key' : ''}" href="${S.storyUrl}" download="${file.name}" data-act="saved-toast" ${share ? '' : 'data-autofocus'}>이미지 저장</a>`}<button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '스토리 카드', 'story-sheet');
     ejectCard();
   } catch (_) { if (S.layer === tok) { toast('카드를 만들지 못했어요'); if (btn) { btn.disabled = false; btn.innerHTML = `${ic('down')}카드 만들기`; } } }
   finally { S.storyBusy = false; }
@@ -868,8 +891,6 @@ function ledChase() { $$('.rk .pp-led').forEach((l, i) => l.animate([{ backgroun
 const Z = { s: 1, x: 0, y: 0 };
 function applyZoom(anim) {
   const img = $('#photo'); if (!img) return;
-  // 기기 앱: 확대하면 고해상도로 다시 받아 선명하게
-  if (NATIVE && Z.s > 1.01 && img.src && !/[?&]detail=1/.test(img.src)) img.src = img.src + (img.src.includes('?') ? '&' : '?') + 'detail=1';
   const t = `translate(${Z.x}px,${Z.y}px) scale(${Z.s})`;
   img.style.transformOrigin = 'center center';
   if (anim && motion()) img.animate([{ transform: img.style.transform || 'none' }, { transform: t }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
@@ -882,6 +903,12 @@ function clampZoom() {
   const mx = Math.max(0, (img.offsetWidth * Z.s - v.clientWidth) / 2), my = Math.max(0, (img.offsetHeight * Z.s - v.clientHeight) / 2);
   Z.x = Math.max(-mx, Math.min(mx, Z.x)); Z.y = Math.max(-my, Math.min(my, Z.y));
 }
+// 기기 앱: 확대가 끝나면 고해상도를 미리 디코드한 뒤 바꿔 끼운다 (손가락 아래에서 사진이 튀지 않게)
+function upgradeDetail() {
+  const img = $('#photo'); if (!NATIVE || !img || Z.s <= 1.01 || !img.src || /[?&]detail=1/.test(img.src)) return;
+  const url = img.src + (img.src.includes('?') ? '&' : '?') + 'detail=1', id = S.cur, pre = new Image(); pre.src = url;
+  (pre.decode ? pre.decode() : Promise.resolve()).then(() => { if (S.cur === id && $('#photo') === img && Z.s > 1.01) { img.src = url; applyZoom(); } }, () => {});
+}
 function maxZoom() { const img = $('#photo'); return img ? Math.max(4, (img.naturalWidth || 0) / (img.offsetWidth || 1) * 1.5) : 4; }
 function resetZoom() { Z.s = 1; Z.x = 0; Z.y = 0; const hl = $('.hintline'); if (hl) hl.innerHTML = HINT; const img = $('#photo'); if (img) img.style.transform = ''; const c = $('#zoomchip'); if (c) c.hidden = true; }
 function toggleZoom(cx, cy) {
@@ -889,21 +916,35 @@ function toggleZoom(cx, cy) {
   if (Z.s > 1.01) { Z.s = 1; Z.x = 0; Z.y = 0; applyZoom(true); return; }
   const full = Math.max(1.6, (img.naturalWidth || img.offsetWidth * 2) / img.offsetWidth);
   const r = v.getBoundingClientRect(), px = cx - (r.left + r.width / 2), py = cy - (r.top + r.height / 2);
-  Z.s = full; Z.x = -px * (full - 1); Z.y = -py * (full - 1); clampZoom(); applyZoom(true); haptic(6);
+  Z.s = full; Z.x = -px * (full - 1); Z.y = -py * (full - 1); clampZoom(); applyZoom(true); haptic(6); upgradeDetail();
 }
 function bindGestures() {
   const v = $('#view'); if (!v) return;
   const pts = new Map(); let start = null, lastTap = 0, pinch = null, moved = false;
+  const center = () => { const r = v.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
+  const springBack = img => { if (!img) return; const from = img.style.transform; img.style.transform = ''; if (motion() && from) img.animate([{ transform: from }, { transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); };
   v.addEventListener('pointerdown', e => {
     if (e.target.closest('button')) return;
     v.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: Z.s }; start = null; return; }
+    if (pts.size === 2) {
+      // 두 손가락: 넘기기 미리보기를 지우고, 두 손가락 가운데를 기준으로 확대
+      const img = $('#photo'); if (img && Z.s <= 1.01 && img.style.transform) img.style.transform = '';
+      hintKey(''); start = null; moved = false;
+      const [a, b] = [...pts.values()], c = center(), mx = (a.x + b.x) / 2 - c.x, my = (a.y + b.y) / 2 - c.y;
+      pinch = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), s: Z.s, lx: (mx - Z.x) / Z.s, ly: (my - Z.y) / Z.s };
+      return;
+    }
+    if (pts.size > 2) return;
     start = { x: e.clientX, y: e.clientY, zx: Z.x, zy: Z.y, t: performance.now() }; moved = false;
   });
   v.addEventListener('pointermove', e => {
     if (!pts.has(e.pointerId)) return; pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const img = $('#photo'); if (!img || busy) return;
-    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; Z.s = Math.max(1, Math.min(maxZoom(), pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d)); clampZoom(); applyZoom(); return; }
+    if (pinch && pts.size >= 2) {
+      const [a, b] = [...pts.values()], c = center(), mx = (a.x + b.x) / 2 - c.x, my = (a.y + b.y) / 2 - c.y;
+      Z.s = Math.max(1, Math.min(maxZoom(), pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d));
+      Z.x = mx - pinch.lx * Z.s; Z.y = my - pinch.ly * Z.s; clampZoom(); applyZoom(); return;
+    }
     if (!start) return;
     const dx = e.clientX - start.x, dy = e.clientY - start.y; if (Math.hypot(dx, dy) > 8) moved = true;
     if (Z.s > 1.01) { Z.x = start.zx + dx; Z.y = start.zy + dy; clampZoom(); applyZoom(); return; }
@@ -915,21 +956,33 @@ function bindGestures() {
   });
   const end = e => {
     if (!pts.has(e.pointerId)) return; pts.delete(e.pointerId);
-    if (pinch) { if (pts.size < 2) { pinch = null; if (Z.s < 1.05) resetZoom(); start = null; } return; }
-    if (!start) return;
-    const dx = e.clientX - start.x, dy = e.clientY - start.y, img = $('#photo'), s0 = start; start = null; hintKey('');
-    if (e.type === 'pointercancel') { if (Z.s <= 1.01 && img) img.style.transform = ''; return; }
+    if (pinch) {
+      if (pts.size >= 2) { const [a, b] = [...pts.values()], c = center(), mx = (a.x + b.x) / 2 - c.x, my = (a.y + b.y) / 2 - c.y; pinch = { d: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), s: Z.s, lx: (mx - Z.x) / Z.s, ly: (my - Z.y) / Z.s }; return; }
+      pinch = null;
+      if (Z.s < 1.05) { Z.s = 1; Z.x = 0; Z.y = 0; applyZoom(true); start = null; return; }
+      // 남은 손가락으로 바로 이어서 끌 수 있게 (탭으로 치지 않음)
+      const rest = [...pts.values()][0];
+      start = rest ? { x: rest.x, y: rest.y, zx: Z.x, zy: Z.y, t: performance.now() } : null; moved = true; lastTap = 0;
+      upgradeDetail(); return;
+    }
+    if (!start || pts.size) return;
+    const dx = e.clientX - start.x, dy = e.clientY - start.y, img = $('#photo'); start = null; hintKey(''); v.dataset.hint = '';
+    if (e.type === 'pointercancel') { if (Z.s <= 1.01) springBack(img); return; }
     if (!moved) { const now = performance.now(); if (now - lastTap < 300) { lastTap = 0; toggleZoom(e.clientX, e.clientY); } else lastTap = now; return; }
-    if (Z.s > 1.01) return;
+    if (Z.s > 1.01) { upgradeDetail(); return; }
     const ids = selIds(), i = ids.indexOf(S.cur), horiz = Math.abs(dx) > Math.abs(dy);
     if (horiz && Math.abs(dx) > 60) { const t = ids[i + (dx < 0 ? 1 : -1)]; if (t != null) { go(t, dx < 0 ? 1 : -1); return; } }
-    else if (!horiz && dy > 70) { doRate('keep', 'swipe'); return; }
-    else if (!horiz && dy < -70) { doRate('best', 'swipe'); return; }
-    if (img) { const from = img.style.transform; img.style.transform = ''; if (motion() && from) img.animate([{ transform: from }, { transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2,.9,.3,1.2)' }); }
+    else if (!horiz && (dy > 70 || dy < -70)) {
+      doRate(dy > 0 ? 'keep' : 'best', 'swipe');
+      // 넘어갈 사진이 없으면(마지막·모두 평가) 끌던 사진을 제자리로
+      if (!busy && $('#photo') === img) springBack(img);
+      return;
+    }
+    springBack(img);
   };
   v.addEventListener('pointerup', end); v.addEventListener('pointercancel', end);
   v.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); Z.s = Math.max(1, Math.min(maxZoom(), Z.s * (e.deltaY < 0 ? 1.1 : .9))); clampZoom(); applyZoom(); }, { passive: false });
-  $('#photo')?.addEventListener('load', () => { if (Z.s > 1) applyZoom(); });
+  $('#photo')?.addEventListener('load', () => { if (Z.s > 1) { clampZoom(); applyZoom(); } });
 }
 function hintKey(g) { $$('.rk').forEach(b => b.classList.toggle('is-down', b.dataset.g === g)); }
 after.rate = () => {
@@ -1035,6 +1088,10 @@ document.addEventListener('click', e => {
     case 'share': share(); break;
     case 'each': each().then(() => { const k = $('[data-act="each"]'); if (k) { k.innerHTML = `${ic('check2')}${S.save?.items.length || ''}장 받았어요`; k.classList.add('done-mark'); } }); break;
     case 'story': story(); break;
+    case 'story-native-save': nativeExport(S.storyFile ? [S.storyFile] : [], false); break;
+    case 'story-native-share': nativeExport(S.storyFile ? [S.storyFile] : [], true); break;
+    case 'imprint-native-save': nativeExport(S.imprintFiles, false); break;
+    case 'imprint-native-share': nativeExport(S.imprintFiles, true); break;
     case 'st-rows': stRows(+b.dataset.n); break;
     case 'st-up': stMove(-1); break;
     case 'st-down': stMove(1); break;

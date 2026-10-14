@@ -57,7 +57,8 @@ window.PhotoPickStory = async ({ photos, total, folder, range }) => {
 };
 /* 날짜 각인 사본: 원본은 그대로 두고, 오른쪽 아래에 CCD식 주황 날짜를 넣은 새 JPEG를 만든다 */
 window.PhotoPickImprint = async (p) => {
-  const src = p.file || await (await fetch(p.url)).blob();
+  // 기기 앱은 기본 사진이 화면용(1200px)이라 각인 사본은 고해상도로 받아 만든다
+  const src = p.file || await (await fetch(window.PhotoPickAndroid && p.url ? p.url + (p.url.includes('?') ? '&' : '?') + 'detail=1' : p.url)).blob();
   const bmp = await createImageBitmap(src);
   const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
   const x = c.getContext('2d'); x.drawImage(bmp, 0, 0); bmp.close();
