@@ -4,7 +4,7 @@
    onNativeSaveProgress, onNativeSaveComplete, nativeBack)은 이전 버전과 같은 이름과 인자를 받는다. */
 (() => {
 'use strict';
-const VERSION = 'PP-1 0.4.0';
+const VERSION = 'PP-1 0.5.0';
 const NATIVE = window.PhotoPickAndroid || null;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const G = ['skip', 'keep', 'best'];
@@ -169,7 +169,7 @@ function home() {
   <div class="home-copy"><h1>누르고, 고르고,<br>옮기면 끝</h1><p>SD카드 사진을 찍은 날짜별로 꺼내 보고, 키 세 개로 평가해 원본만 휴대폰에 옮겨요.</p></div>
   ${canResume ? `<button class="resume" data-act="resume"><div><b>이어서 고르기</b><small>${esc(last.folder)}${last.selLabel ? ' · ' + esc(last.selLabel) : ''} · ${rated} / ${totalN}장 평가</small><span class="meter-mini"><i style="width:${Math.round(rated / totalN * 100)}%"></i></span></div>${ic('next')}</button>` : ''}
   ${S.msg ? `<p class="msg" role="status">${esc(S.msg)}</p>` : ''}
-  <button class="pp-btn" data-act="folder"><span class="pp-led"></span>SD카드 폴더 열기</button>
+  <button class="pp-btn" data-act="folder">${ic('folder')}SD카드 폴더 열기</button>
   <div class="row2"><button class="pp-btn pp-btn--key" data-act="files">사진 파일 선택</button><button class="pp-btn pp-btn--key" data-act="demo">예시로 해보기</button></div>
   <p class="note">사진은 이 기기 안에서만 열려요. 어디에도 올라가지 않아요.</p>`;
 }
@@ -244,7 +244,7 @@ function rate() {
     ${gradeTag(g)}<span class="zoom-chip" id="zoomchip" hidden>100%</span><div class="stamp" id="stamp"></div>
   </div></div>
   <div class="navrow"><button class="key" data-act="sheet" aria-label="모아보기">${ic('grid')}</button><button class="key" data-act="prev" aria-label="이전 사진" ${i <= 0 ? 'disabled' : ''}>${ic('back')}</button>
-    <div class="meter" role="progressbar" aria-label="평가 진행" aria-valuemin="0" aria-valuemax="${ids.length}" aria-valuenow="${ids.length - c.unrated}">${meter(ids)}<span class="lbl" id="m-lbl">${ids.length - c.unrated}<span class="pre">장 평가</span></span></div>
+    <div class="reel" id="reel">${reel(ids)}</div><span class="sr" id="reel-pb" role="progressbar" aria-label="평가 진행" aria-valuemin="0" aria-valuemax="${ids.length}" aria-valuenow="${ids.length - c.unrated}" aria-valuetext="${ids.length}장 중 ${ids.length - c.unrated}장 평가"></span>
     <button class="key" data-act="next" aria-label="다음 사진" ${i >= ids.length - 1 ? 'disabled' : ''}>${ic('next')}</button><button class="key undo-key" data-act="undo" aria-label="마지막 평가 되돌리기" ${S.history.length ? '' : 'disabled'}>${ic('undo')}<span>되돌리기</span></button></div>
   <div class="ratekeys" role="group" aria-label="평가">${G.map((k, n) => `<button class="rk" data-act="rate" data-g="${k}" aria-pressed="${g === k}"><span class="pp-led"></span>${ic(k)}<span>${LABEL[k]}</span><kbd>${n + 1}</kbd></button>`).join('')}</div>
   <p class="hintline">${HINT}</p>`;
@@ -260,6 +260,21 @@ function meter(ids) {
     bars += `<i class="${rated.length === slice.length ? (rated.some(id => R[S.photos[id].key] !== 'skip') ? 'k' : 'r') : ''}"></i>`;
   }
   return `<div class="track" id="track">${bars}<span class="head" style="left:${ids.length ? (i + .5) / ids.length * 100 : 0}%"></span></div>`;
+}
+/* 필름 릴: 지금 사진을 가운데 두고 앞뒤 사진과 평가 흔적을 보여 준다 */
+function reel(ids) {
+  const i = ids.indexOf(S.cur), W = 6, rated = ids.filter(id => R[S.photos[id].key]).length;
+  let h = '';
+  for (let d = -W; d <= W; d++) {
+    const id = ids[i + d];
+    if (id == null) { h += `<span class="rf empty d${Math.abs(d)}"></span>`; continue; }
+    const g = R[S.photos[id].key] || 'un';
+    h += `<span class="rf d${Math.abs(d)} g-${g}${d === 0 ? ' cur' : ''}" data-act="jump" data-id="${id}" aria-hidden="true">${tImg(S.photos[id])}</span>`;
+  }
+  return `<div class="reel-in">${h}</div><span class="reel-bar"><i style="width:${ids.length ? rated / ids.length * 100 : 0}%"></i></span>`;
+}
+function fillReel() {
+  $$('#reel img[data-t]').forEach(img => { const p = S.photos[+img.dataset.t]; if (p) thumb(p, img).then(u => { if (u) { img.src = u; img.classList.add('ok'); } }); });
 }
 const rateTimes = [];
 const eta = n => { if (rateTimes.length < 5) return ''; const avg = rateTimes.slice(-30).reduce((a, b) => a + b, 0) / Math.min(30, rateTimes.length), sec = n * avg / 1000; return ` · 약 ${Math.max(1, Math.round(sec / 60))}분`; };
@@ -278,6 +293,11 @@ function sheetView(ids, c) {
 }
 const tile = (p, cur) => { const g = R[p.key]; const sel = S.multi?.has(p.id); return `<button class="tile${g === 'skip' ? ' is-skip' : g ? '' : ' is-un'}${cur && !S.multi ? ' is-cur' : ''}${sel ? ' is-sel' : ''}" data-act="open" data-id="${p.id}" aria-label="${esc(p.name)} · ${g ? LABEL[g] : '미평가'}"${S.multi ? ` aria-pressed="${!!sel}"` : ''}>${S.multi ? '<span class="selbox"></span>' : ''}${tImg(p)}${g ? `<span class="b ${g}">${ic(g)}</span>` : ''}</button>`; };
 
+/* 숫자 블록(Readout): 캡션 줄 / 숫자 + 단위 / 각인 눈금. 결과·완료가 같은 부품을 쓴다 */
+const readout = ({ id, n, label, ctx, sub, unit = '장', prog = 0, cls = '' }) => `<div class="readout ${cls}">
+  <div class="ro-cap"><span>${label}</span><span>${ctx || ''}</span></div>
+  <div class="ro-row"><div class="bignum" id="${id}" data-n="${n}" data-digits="${Math.max(2, String(n).length)}">${pad(n)}</div><span class="ro-unit">${sub ? `<small>${sub}</small>` : ''}<b>${unit}</b></span></div>
+  <div class="ro-scale" aria-hidden="true"><i style="width:${Math.round(Math.max(0, Math.min(1, prog)) * 100)}%"></i></div></div>`;
 /* ── 결과 ─────────────────────────────── */
 function results() {
   const ids = selIds(), c = counts(ids), pk = picks(), done = ids.length - c.unrated;
@@ -288,7 +308,7 @@ function results() {
   return `<div class="top"><button class="icon-btn" data-act="back" aria-label="평가로 돌아가기">${ic('back')}</button>
   <div class="pp-oled res-o"><span class="ko">평가 결과</span><span class="pp-mono pp-oled-sub">${rtxt || `${done}/${ids.length}`}</span></div>
   <button class="icon-btn" data-act="menu" aria-label="메뉴">${ic('menu')}</button></div>
-  <div class="res-hero"><div class="res-num"><div class="bignum" id="res-n" data-n="${pk.length}" data-digits="${Math.max(2, String(pk.length).length)}">${pad(pk.length)}</div><span class="res-cap">장 ${NATIVE ? '저장' : '내보내기'}</span></div></div>
+  ${readout({ id: 'res-n', n: pk.length, label: NATIVE ? '휴대폰에 저장할 사진' : '내보낼 사진', ctx: `평가 <b>${done}/${ids.length}</b>`, sub: S.scope === 'best' ? '매우 좋음만' : '좋음 이상', prog: ids.length ? done / ids.length : 0, cls: 'res-hero' })}
   <div class="legend" aria-label="평가별 장수">${leg('best', '매우 좋음')}${leg('keep', '좋음')}${leg('skip', '별로')}</div>
   <div class="seg-row"><div class="seg" role="radiogroup" aria-label="저장할 사진"><button class="opt" role="radio" aria-checked="${S.scope === 'best'}" data-act="scope" data-s="best"><span class="pp-led${S.scope === 'best' ? ' is-on' : ''}"></span>매우 좋음만 <b>${c.best}</b></button><button class="opt" role="radio" aria-checked="${S.scope === 'combined'}" data-act="scope" data-s="combined"><span class="pp-led${S.scope === 'combined' ? ' is-on' : ''}"></span>좋음 이상 <b>${c.best + c.keep}</b></button></div>${pk.length ? `<button class="key pv-key" data-act="pv" data-v="${S.picksView === 'feed' ? 'grid' : 'feed'}" aria-pressed="${S.picksView === 'feed'}" aria-label="피드 미리보기">${ic('feed')}</button>` : ''}</div>
   <div class="picks-wrap grow">${pk.length ? (S.picksView === 'feed' ? feed(pk) : `<div class="sheetgrid" style="--cols:${pk.length <= 4 ? 2 : pk.length <= 9 ? 3 : 4}" id="picks">${pk.map(p => tile(p)).join('')}</div>`) : `<div class="sheetgrid"><p class="empty">${ids.length - c.unrated ? '저장할 사진이 없어요.<br>위에서 범위를 바꾸거나 사진을 더 평가해 주세요.' : '아직 평가한 사진이 없어요.'}</p></div>`}
@@ -340,7 +360,7 @@ function done() {
   const title = NATIVE ? (r.failed ? (r.saved + r.skipped ? '일부 사진을 저장하지 못했어요' : '사진을 저장하지 못했어요') : `원본 ${n}장을 휴대폰에 옮겼어요`) : `${n}장을 내보낼 준비가 됐어요`;
   const sub = NATIVE ? `${r.saved}장 새로 저장${r.skipped ? ` · ${r.skipped}장은 이미 있어요` : ''}${r.failed ? ` · ${r.failed}장 실패` : ''}. SD카드의 원본은 그대로예요.` : `${canShare(s) ? '공유 창에서 갤러리에 저장하거나 인스타그램에 바로 올릴 수 있어요.' : s.items.length > 1 && s.items.length <= 20 ? '따로 받으면 갤러리에서 바로 보여요. 원본 JPEG 그대로예요.' : f?.zip ? 'ZIP을 풀면 원본 사진이 그대로 들어 있어요.' : '원본 JPEG 그대로 받아요.'}`;
   return `<div class="top"><span class="top-side"></span><div class="pp-oled solo"><span class="ko">${warn ? '확인 필요' : '완료'}</span><span class="pp-mono pp-oled-sub">${stamp}</span></div><span class="top-side"></span></div>
-  <div class="done-num${warn ? ' is-warn' : ''}"><div class="dn-row"><div class="bignum" id="dn-num" data-digits="${Math.max(2, String(n).length)}" data-n="${n}">${pad(n)}</div><div class="dn-meta"><b>장 ${NATIVE ? '저장' : '준비'}</b><span>${mb(s.items)}</span>${s.items.some(p => R[p.key] === 'best') ? `<span>매우 좋음 ${s.items.filter(p => R[p.key] === 'best').length}</span>` : ''}</div></div><span class="rule"></span></div>
+  ${readout({ id: 'dn-num', n, label: NATIVE ? '휴대폰으로 옮긴 사진' : '내보낼 준비가 된 사진', ctx: `<span class="mono">${mb(s.items)}</span> · 원본 그대로`, sub: s.items.some(p => R[p.key] === 'best') ? `매우 좋음 ${s.items.filter(p => R[p.key] === 'best').length}장 포함` : '', prog: 1, cls: 'done-num' + (warn ? ' is-warn' : '') })}
   <div class="collage-wrap grow"><div class="collage" id="collage" aria-hidden="true" style="--cols:${cols};--rows:${Math.ceil(Math.min(s.items.length, cols * 3) / cols)}">${shown.map(p => `<span>${tImg(p)}</span>`).join('')}${more > 0 ? `<span class="more">+${more}</span>` : ''}</div></div>
   <div class="oledbar"><span>→ ${NATIVE ? '갤러리 · Photo Pick 앨범' : esc(f?.name || '')}</span><em>${warn ? 'check' : NATIVE ? 'done' : 'ready'}</em></div>
   <div class="done-copy"><h1>${title}</h1><p>${sub}</p></div>
@@ -582,23 +602,129 @@ function ejectCard() {
   card.addEventListener('click', () => { a.playbackRate = Math.min(6, a.playbackRate + 1); });
   a.finished.then(done, () => {});
 }
-async function story() {
-  const s = S.save; if (!s || S.storyBusy) return; S.storyBusy = true;
-  openLayer(`<h2 tabindex="-1" data-autofocus>스토리 카드 만드는 중</h2><p aria-live="polite">베스트 사진을 필름에 담고 있어요</p><div class="segs dark pulse" aria-hidden="true">${segs(0, 10)}</div>`, '스토리 카드');
+/* ── 스토리 카드 (선택 기능) ──────────────
+   매우 좋음 사진 3~4장을 자동으로 골라 세로 줄로 놓고, 사진 교체·순서 변경·끌어서 크롭 위치 조정 */
+const ST_FY = .35; // 사람 얼굴은 보통 위쪽 1/3에 있어 기본 크롭을 살짝 위로
+function storyCands() {
+  const s = S.save; if (!s) return [];
+  const rank = p => (R[p.key] === 'best' ? 0 : R[p.key] === 'keep' ? 1 : 2);
+  return [...s.items].sort((a, b) => rank(a) - rank(b) || (a.at || '').localeCompare(b.at || ''));
+}
+function story() {
+  const s = S.save; if (!s || S.storyBusy) return;
+  const c = storyCands(); if (!c.length) return;
+  const best = c.filter(p => R[p.key] === 'best').length;
+  const rows = Math.min(c.length, best >= 4 ? 4 : 3);
+  S.st = { rows, picks: c.slice(0, rows).map(p => ({ id: p.id, fx: .5, fy: ST_FY })), sel: -1, pick: false };
+  openLayer(stEditorHtml(), '스토리 카드 만들기', 'story-editor');
+  stBind();
+}
+function stRange() { const ds = S.dates.filter(d => d !== 'unknown').sort(); return ds.length ? `${ds[0].replace(/-/g, '.')}${ds.length > 1 ? ' – ' + ds.at(-1).slice(5).replace('-', '.') : ''}` : ''; }
+function stCardHtml() {
+  const st = S.st, L = window.PhotoPickRowsLayout || { H: 1920, top: 196, bottom: 1636, gap: 16 }, pct = v => (v / L.H * 100).toFixed(3) + '%';
+  const date = p => p.date && p.date !== 'unknown' ? `<span class="st-date" aria-hidden="true"><i>'</i>${p.date.slice(2, 4)} ${p.date.slice(5, 7)} ${p.date.slice(8, 10)}</span>` : '';
+  return `<div class="st-card" id="st-card" style="--top:${pct(L.top)};--bot:${pct(L.H - L.bottom)};--gap:${(L.gap / 1080 * 100).toFixed(3)}cqw">
+    <div class="st-head"><span class="pp-led is-on"></span><b>PP-1</b><span>${esc(stRange())}</span></div>
+    <div class="st-rows">${st.picks.map((k, i) => { const p = S.photos[k.id]; return `<div class="st-row${st.sel === i ? ' is-sel' : ''}" data-i="${i}" role="button" tabindex="0" aria-pressed="${st.sel === i}" aria-label="${i + 1}번째 줄 · ${esc(p.name)}. 끌어서 보이는 부분 조정"><img src="${fullUrl(p)}" alt="" draggable="false" style="object-position:${(k.fx * 100).toFixed(2)}% ${(k.fy * 100).toFixed(2)}%">${date(p)}<span class="st-no">${i + 1}</span></div>`; }).join('')}</div>
+    <div class="st-foot"><b>${pad(st.picks.length)}</b><span><em>장을 골랐어요</em><small>${selIds().length}장 중에서${S.folder ? ' · ' + esc(S.folder) : ''}</small></span></div>
+  </div>`;
+}
+function stToolsHtml() {
+  const st = S.st, n = st.picks.length, c = storyCands();
+  if (st.sel < 0) return `<p class="st-hint">줄을 눌러 고르면 사진을 바꾸거나 순서를 옮길 수 있어요. 사진을 끌면 보이는 부분이 움직여요.</p>`;
+  const used = new Set(st.picks.map(k => k.id));
+  return `<div class="st-tools" role="group" aria-label="${st.sel + 1}번째 줄 편집">
+    <button class="key" data-act="st-up" ${st.sel <= 0 ? 'disabled' : ''} aria-label="위로 옮기기">${ic('up')}</button>
+    <button class="key" data-act="st-down" ${st.sel >= n - 1 ? 'disabled' : ''} aria-label="아래로 옮기기">${ic('dn')}</button>
+    <button class="key st-swap${st.pick ? ' is-down' : ''}" data-act="st-pick" aria-pressed="${st.pick}"><span class="pp-led${st.pick ? ' is-on' : ''}"></span>사진 바꾸기</button>
+    <button class="key" data-act="st-center" aria-label="가운데로 맞추기">${ic('one')}</button>
+  </div>
+  ${st.pick ? `<div class="st-cands" role="listbox" aria-label="바꿀 사진">${c.map(p => `<button class="st-cand${used.has(p.id) ? ' used' : ''}" data-act="st-use" data-id="${p.id}" role="option" aria-selected="${st.picks[st.sel]?.id === p.id}" aria-label="${esc(p.name)} · ${LABEL[R[p.key]] || '미평가'}${used.has(p.id) ? ' · 이미 카드에 있음(서로 자리 바꿈)' : ''}">${tImg(p)}${R[p.key] === 'best' ? '<span class="st-star">' + ic('best') + '</span>' : ''}</button>`).join('')}</div>` : ''}`;
+}
+function stEditorHtml() {
+  const st = S.st, c = storyCands(), max = Math.min(4, c.length);
+  return `<div class="st-top"><h2>스토리 카드</h2>
+    <div class="seg st-n" role="radiogroup" aria-label="줄 수">${[3, 4].map(n => `<button class="opt" role="radio" aria-checked="${st.rows === n}" data-act="st-rows" data-n="${n}" ${n > max ? 'disabled' : ''}><span class="pp-led${st.rows === n ? ' is-on' : ''}"></span>${n}줄</button>`).join('')}</div></div>
+    <div class="st-stage">${stCardHtml()}</div>
+    <div class="st-edit" id="st-edit">${stToolsHtml()}</div>
+    <div class="row2"><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button><button class="pp-btn" data-act="st-make" data-autofocus>${ic('down')}카드 만들기</button></div>`;
+}
+function stRefresh(part) {
+  const sheet = $('.story-editor'); if (!sheet || !S.st) return;
+  if (S.layer) S.layer.html = stEditorHtml();
+  if (part === 'tools') $('#st-edit', sheet).innerHTML = stToolsHtml();
+  else { sheet.innerHTML = stEditorHtml(); stBind(); }
+  hydrateThumbs(sheet);
+}
+function stBind() {
+  $$('.st-row').forEach(row => {
+    const i = +row.dataset.i, img = $('img', row);
+    let start = null, moved = false;
+    row.addEventListener('pointerdown', e => {
+      const k = S.st.picks[i]; if (!k || !img.naturalWidth) { start = { x: e.clientX, y: e.clientY, k: null }; return; }
+      const bw = row.clientWidth, bh = row.clientHeight, r = Math.max(bw / img.naturalWidth, bh / img.naturalHeight);
+      start = { x: e.clientX, y: e.clientY, fx: k.fx, fy: k.fy, ox: img.naturalWidth * r - bw, oy: img.naturalHeight * r - bh, k };
+      moved = false; row.setPointerCapture(e.pointerId);
+    });
+    row.addEventListener('pointermove', e => {
+      if (!start || !start.k) return;
+      const dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (!moved && Math.hypot(dx, dy) < 6) return;
+      if (!moved) { moved = true; row.classList.add('is-drag'); }
+      const k = start.k;
+      if (start.ox > 1) k.fx = Math.min(1, Math.max(0, start.fx - dx / start.ox));
+      if (start.oy > 1) k.fy = Math.min(1, Math.max(0, start.fy - dy / start.oy));
+      img.style.objectPosition = `${(k.fx * 100).toFixed(2)}% ${(k.fy * 100).toFixed(2)}%`;
+    });
+    const end = () => {
+      if (!start) return; row.classList.remove('is-drag');
+      if (!moved) { S.st.sel = S.st.sel === i ? -1 : i; S.st.pick = false; $$('.st-row').forEach((r, j) => { r.classList.toggle('is-sel', j === S.st.sel); r.setAttribute('aria-pressed', j === S.st.sel); }); stRefresh('tools'); haptic(6); }
+      else if (S.layer) S.layer.html = stEditorHtml();
+      start = null;
+    };
+    row.addEventListener('pointerup', end); row.addEventListener('pointercancel', () => { start = null; row.classList.remove('is-drag'); });
+    row.addEventListener('keydown', e => {
+      const k = S.st.picks[i], step = .05;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); S.st.sel = S.st.sel === i ? -1 : i; S.st.pick = false; stRefresh(); $$('.st-row')[i]?.focus(); return; }
+      const m = { ArrowUp: [0, step], ArrowDown: [0, -step], ArrowLeft: [step, 0], ArrowRight: [-step, 0] }[e.key]; if (!m) return;
+      e.preventDefault(); e.stopPropagation(); k.fx = Math.min(1, Math.max(0, k.fx + m[0])); k.fy = Math.min(1, Math.max(0, k.fy + m[1])); img.style.objectPosition = `${k.fx * 100}% ${k.fy * 100}%`;
+    });
+  });
+}
+function stMove(d) {
+  const st = S.st, i = st.sel, j = i + d; if (j < 0 || j >= st.picks.length) return;
+  [st.picks[i], st.picks[j]] = [st.picks[j], st.picks[i]]; st.sel = j; stRefresh(); haptic(8);
+  const r = $$('.st-row')[j]; if (r && motion()) r.animate([{ transform: `translateY(${d * -100}%)` }, { transform: 'none' }], { duration: 220, easing: 'cubic-bezier(.3,1.4,.5,1)' });
+}
+function stUse(id) {
+  const st = S.st, i = st.sel; if (i < 0) return;
+  const other = st.picks.findIndex(k => k.id === id);
+  if (other === i) return;
+  if (other >= 0) [st.picks[i], st.picks[other]] = [st.picks[other], st.picks[i]];
+  else st.picks[i] = { id, fx: .5, fy: ST_FY };
+  st.pick = false; stRefresh(); haptic(8);
+}
+function stRows(n) {
+  const st = S.st, c = storyCands(); n = Math.min(n, c.length); if (n === st.picks.length) return;
+  if (n < st.picks.length) st.picks = st.picks.slice(0, n);
+  else { const used = new Set(st.picks.map(k => k.id)); for (const p of c) { if (st.picks.length >= n) break; if (!used.has(p.id)) st.picks.push({ id: p.id, fx: .5, fy: ST_FY }); } }
+  st.rows = n; if (st.sel >= n) st.sel = -1; stRefresh();
+}
+async function stMake() {
+  const s = S.save, st = S.st; if (!s || !st || S.storyBusy) return; S.storyBusy = true;
+  const btn = $('[data-act="st-make"]'); if (btn) { btn.disabled = true; btn.textContent = '카드 만드는 중…'; }
   const tok = S.layer;
   try {
-    const best = [...s.items].sort((a, b) => (R[b.key] === 'best') - (R[a.key] === 'best'));
-    const ds = S.dates.filter(d => d !== 'unknown').sort(), range = ds.length ? `${ds[0].replace(/-/g, '.')}${ds.length > 1 ? ' – ' + ds.at(-1).slice(5).replace('-', '.') : ''}` : '';
-    const file = await PhotoPickStory({ photos: best, total: selIds().length, folder: S.folder, range });
+    const file = await PhotoPickRows({ picks: st.picks.map(k => ({ p: S.photos[k.id], fx: k.fx, fy: k.fy })), total: selIds().length, folder: S.folder, range: stRange() });
     if (S.layer !== tok || S.save !== s) return;
     if (S.storyUrl) URL.revokeObjectURL(S.storyUrl);
     S.storyFile = file; S.storyUrl = URL.createObjectURL(file);
     const share = !!navigator.canShare?.({ files: [file] });
     openLayer(`<h2>스토리 카드가 나왔어요</h2><div class="story-prev eject"><span class="slot"><i></i></span><div class="card-out"><span class="cw"><img src="${S.storyUrl}" alt="고른 사진으로 만든 스토리 카드"><span class="dev" aria-hidden="true"></span></span></div></div><p class="dev-hint" aria-hidden="true">흔들면 더 빨리 나타나요</p>
-      ${share ? `<button class="pp-btn" data-act="story-share" data-autofocus><span class="pp-led"></span>${ic('share')}인스타 스토리로 공유</button>` : ''}
-      <div class="row2"><a class="pp-btn ${share ? 'pp-btn--key' : ''}" href="${S.storyUrl}" download="${file.name}" data-act="saved-toast" ${share ? '' : 'data-autofocus'}>이미지 저장</a><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '스토리 카드', 'story-sheet');
+      ${share ? `<button class="pp-btn" data-act="story-share" data-autofocus>${ic('share')}인스타 스토리로 공유</button>` : ''}
+      <div class="row3 even"><button class="pp-btn pp-btn--key" data-act="st-back">다시 고치기</button><a class="pp-btn ${share ? 'pp-btn--key' : ''}" href="${S.storyUrl}" download="${file.name}" data-act="saved-toast" ${share ? '' : 'data-autofocus'}>이미지 저장</a><button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button></div>`, '스토리 카드', 'story-sheet');
     ejectCard();
-  } catch (_) { if (S.layer === tok) { closeLayer(); toast('카드를 만들지 못했어요'); } }
+  } catch (_) { if (S.layer === tok) { toast('카드를 만들지 못했어요'); if (btn) { btn.disabled = false; btn.innerHTML = `${ic('down')}카드 만들기`; } } }
   finally { S.storyBusy = false; }
 }
 async function share() {
@@ -609,7 +735,7 @@ async function share() {
 
 /* ── 평가 동작 ────────────────────────── */
 const haptic = (ms = 10) => { try { NATIVE?.ratingHaptic ? NATIVE.ratingHaptic() : navigator.vibrate?.(ms); } catch (_) {} };
-let busy = false, busyAnim = null, pendingNav = null, navSeq = 0, completeTimer = null;
+let swapTok = 0, busy = false, busyAnim = null, pendingNav = null, navSeq = 0, completeTimer = null;
 function setRating(p, g) { if (g) R[p.key] = g; else delete R[p.key]; }
 function doRate(g, via = 'key') {
   if (S.screen !== 'rate' || S.view !== 'one' || !S.photos[S.cur]) return;
@@ -664,11 +790,19 @@ function go(id, dir = 1, fromRate = false, seq) {
   if (S.screen !== 'rate' || S.view !== 'one') { render(); return; }
   const p = S.photos[id], img = $('#photo');
   img.style.transform = ''; img.getAnimations().forEach(a => a.cancel());
-  img.src = fullUrl(p); img.alt = p.name;
+  // 새 사진은 디코드가 끝난 뒤에 바꿔 끼운다 (흰 프레임·이전 사진 깜빡임 방지)
+  const url = fullUrl(p), tok = ++swapTok; img.alt = p.name;
+  if (fromRate) img.style.opacity = '0';
+  let shown = false;
+  const show = () => {
+    if (shown || tok !== swapTok || $('#photo') !== img) return; shown = true;
+    img.src = url; img.style.opacity = '';
+    if (!motion()) return;
+    if (fromRate) img.animate([{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    else img.animate([{ transform: `translateX(${dir * 22}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  };
+  if (img.src === url) show(); else { const pre = new Image(); pre.src = url; const t = setTimeout(show, 400); (pre.decode ? pre.decode() : Promise.resolve()).then(() => { clearTimeout(t); show(); }, () => { clearTimeout(t); show(); }); }
   if (motion()) {
-    if (fromRate) {
-      img.animate([{ opacity: 0, transform: 'translateX(24px)' }, { opacity: 1, transform: 'none' }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    } else img.animate([{ transform: `translateX(${dir * 22}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' });
     const oc = $('#o-count i'); if (oc) oc.animate([{ transform: `translateY(${dir * 60}%)`, opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 180, easing: 'cubic-bezier(.2,.8,.2,1)' });
   }
   updateRateUI(); preload();
@@ -681,7 +815,7 @@ function updateRateUI() {
   $$('.rk').forEach(b => { const on = b.dataset.g === g; if (b.getAttribute('aria-pressed') !== String(on) && on && motion()) b.querySelector('.pp-led').animate([{ transform: 'scale(2.4)' }, { transform: 'scale(1)' }], { duration: 320 }); b.setAttribute('aria-pressed', on); });
   const t = $('#gtag'); if (t) t.outerHTML = gradeTag(g);
   $('[data-act="prev"]').disabled = i <= 0; $('[data-act="next"]').disabled = i >= ids.length - 1; $('[data-act="undo"]').disabled = !S.history.length;
-  const m = $('.meter'); if (m) { const tmp = document.createElement('div'); tmp.innerHTML = meter(ids); const nt = tmp.firstChild, ot = m.querySelector('.track'); ot.querySelectorAll('i').forEach((b, j) => { b.className = nt.children[j]?.className || ''; }); ot.querySelector('.head').style.left = nt.querySelector('.head').style.left; m.setAttribute('aria-valuenow', ids.length - c.unrated); $('#m-lbl').innerHTML = `${ids.length - c.unrated}<span class="pre">장 평가</span>`; }
+  const rl = $('#reel'), pb = $('#reel-pb'); if (rl) { const rated = ids.length - c.unrated; rl.innerHTML = reel(ids); pb?.setAttribute('aria-valuenow', rated); pb?.setAttribute('aria-valuetext', `${ids.length}장 중 ${rated}장 평가`); fillReel(); }
   $('#view')?.setAttribute('aria-label', `${p.name} 사진${g ? ', ' + LABEL[g] : ''}`);
 }
 function undoEntry(h) {
@@ -874,6 +1008,7 @@ document.addEventListener('click', e => {
     case 'date': { const k = b.dataset.k; S.dates = S.dates.includes(k) ? S.dates.filter(d => d !== k) : [...S.dates, k]; persist(); refreshDates(); if (motion()) b.animate([{ transform: 'scale(.98)' }, { transform: 'none' }], { duration: 180 }); break; }
     case 'start': { const ids = selIds(); if (!ids.length) break; S.view = 'one'; S.history = []; if (!ids.includes(S.cur)) S.cur = ids.find(id => !R[S.photos[id].key]) ?? ids[0]; else if (R[S.photos[S.cur].key]) S.cur = ids.find(id => !R[S.photos[id].key]) ?? S.cur; persist(); to('rate'); break; }
     case 'rate': doRate(b.dataset.g); if (motion()) b.animate([{ transform: 'translateY(3px) scale(.97)' }, { transform: 'translateY(2px)' }], { duration: 160 }); break;
+    case 'jump': { const ids = selIds(), to = +b.dataset.id, d = ids.indexOf(to) - ids.indexOf(S.cur); if (d) go(to, d > 0 ? 1 : -1); break; }
     case 'prev': case 'next': { const ids = selIds(), i = ids.indexOf(S.cur), d = a === 'next' ? 1 : -1; if (ids[i + d] != null) go(ids[i + d], d); break; }
     case 'undo': undo(); break;
     case 'sheet': S.view = 'sheet'; render(); break;
@@ -900,8 +1035,16 @@ document.addEventListener('click', e => {
     case 'share': share(); break;
     case 'each': each().then(() => { const k = $('[data-act="each"]'); if (k) { k.innerHTML = `${ic('check2')}${S.save?.items.length || ''}장 받았어요`; k.classList.add('done-mark'); } }); break;
     case 'story': story(); break;
+    case 'st-rows': stRows(+b.dataset.n); break;
+    case 'st-up': stMove(-1); break;
+    case 'st-down': stMove(1); break;
+    case 'st-pick': S.st.pick = !S.st.pick; stRefresh('tools'); break;
+    case 'st-use': stUse(+b.dataset.id); break;
+    case 'st-center': { const k = S.st.picks[S.st.sel]; if (k) { k.fx = .5; k.fy = .5; stRefresh(); } break; }
+    case 'st-make': stMake(); break;
+    case 'st-back': if (S.st) { openLayer(stEditorHtml(), '스토리 카드 만들기', 'story-editor'); stBind(); } break;
     case 'extras': openLayer(`<h2>사진 꾸미기</h2><p>원본은 그대로 두고, 공유하기 좋은 이미지를 새로 만들어요.</p>
-      <div class="menu-list"><button class="menu-item" data-act="story" ${S.storyBusy ? 'disabled' : ''}>${ic('best')}<span>스토리 카드<br><small style="margin:0">베스트 4컷 필름 · 1080×1920</small></span></button>
+      <div class="menu-list"><button class="menu-item" data-act="story" ${S.storyBusy ? 'disabled' : ''}>${ic('best')}<span>스토리 카드<br><small style="margin:0">매우 좋음 3~4장을 줄로 · 1080×1920</small></span></button>
       <button class="menu-item" data-act="imprint" ${S.save.items.length > 30 || S.storyBusy ? 'disabled' : ''}>${ic('cal')}<span>날짜 각인 사진 ${S.save.items.length}장<br><small style="margin:0">${S.save.items.length > 30 ? '30장 이하일 때 만들 수 있어요' : "디카처럼 '26 10 11 주황 날짜"}</small></span></button></div>
       <button class="pp-btn pp-btn--key" data-act="close-layer">닫기</button>`, '사진 꾸미기'); break;
     case 'imprint': imprint(); break;
@@ -941,31 +1084,61 @@ document.addEventListener('keydown', e => {
 addEventListener('resize', () => { if (Z.s > 1) { clampZoom(); applyZoom(); } });
 
 /* ── 오프닝 ───────────────────────────── */
+/* 오프닝 = 전원 켜기 (1,900ms). 홈의 기기가 그 자리에서 켜지고, 끝나면 그대로 홈이 된다. 탭하면 바로 끝. */
 function opening() {
   let seen = false; try { seen = !!sessionStorage.getItem('pp1.open'); sessionStorage.setItem('pp1.open', '1'); } catch (_) {}
-  if (seen) return;
-  const el = document.createElement('div'); el.className = 'opening'; el.setAttribute('aria-hidden', 'true');
-  el.innerHTML = `<div class="op-stage"><div class="op-ring r1"></div><div class="op-ring r2"></div><div class="op-ring r3"></div>
-    ${[0, 4, 8].map((n, i) => `<span class="op-card c${i}" style="background-image:url('assets/demo/${DEMO[n]}')"></span>`).join('')}
-    <span class="op-dot"></span></div>
-    <div class="op-keys"><span>×</span><span>●</span><span>★</span></div>
-    <div class="op-oled"><span class="op-type">PP-1 · BOOT</span><em>READY</em></div>
-    <div class="op-brand"><b>${'Photo Pick'.split('').map((c, i) => `<i style="--i:${i}">${c === ' ' ? '&nbsp;' : c}</i>`).join('')}</b><span>사진은 많이, 선택은 가볍게</span></div>
-    <span class="op-skip">탭해서 건너뛰기</span>`;
-  $('.app').appendChild(el); root.inert = true;
-  let closed = false;
-  const close = () => {
-    if (closed) return; closed = true; root.inert = !!S.layer;
-    const lens = $('.device-lens .ring'), app = $('.app').getBoundingClientRect();
-    if (motion() && lens && el.animate) {
-      const r = lens.getBoundingClientRect(), x = r.left + r.width / 2 - app.left, y = r.top + r.height / 2 - app.top;
-      el.animate([{ clipPath: `circle(150% at ${x}px ${y}px)` }, { clipPath: `circle(${r.width / 2}px at ${x}px ${y}px)`, offset: .8 }, { clipPath: `circle(0px at ${x}px ${y}px)` }], { duration: 520, easing: 'cubic-bezier(.7,0,.2,1)', fill: 'forwards' }).finished.then(() => el.remove());
-      lens.animate([{ transform: 'scale(.92) rotate(-25deg)' }, { transform: 'none' }], { duration: 700, delay: 380, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
-    } else { el.classList.add('out'); setTimeout(() => el.remove(), 420); }
+  if (seen || S.screen !== 'home' || !motion()) return;
+  const app = $('.app'), scr = $('.scr-home'), dev = $('.device'), lensImg = $('#lens');
+  if (!scr || !dev || !dev.animate) return;
+  const E = { led: 'cubic-bezier(.2,0,0,1)', detent: 'cubic-bezier(.3,1.5,.5,1)', light: 'cubic-bezier(.4,0,.2,1)' };
+  root.inert = true; app.classList.add('booting'); clearInterval(lensTimer);
+  dev.insertAdjacentHTML('beforeend', '<div class="boot-dim"></div><div class="boot-sheen"><i></i></div>');
+  $('.device-head .ready')?.insertAdjacentHTML('beforeend', '<span class="boot-test">88.88</span>');
+  const lensBox = $('.device-lens .ring>div');
+  lensBox?.insertAdjacentHTML('beforeend', '<svg class="boot-iris" viewBox="0 0 100 100" aria-hidden="true"><defs><mask id="boot-m"><rect width="100" height="100" fill="#fff"/><polygon id="boot-hole" fill="#000"/></mask><radialGradient id="boot-g" cx="35%" cy="30%"><stop offset="0" stop-color="#2A2A2C"/><stop offset="1" stop-color="#0E0E0F"/></radialGradient></defs><g mask="url(#boot-m)"><rect width="100" height="100" fill="url(#boot-g)"/><g id="boot-edges" stroke="#3A3A3D" stroke-width=".7" fill="none"></g></g></svg>');
+  const others = [...scr.children].filter(el => !el.classList.contains('home-hero'));
+  others.forEach(el => { el.style.opacity = '0'; });
+  const anims = [], A = (el, k, o) => { if (!el) return; const a = el.animate(k, Object.assign({ fill: 'both' }, o)); anims.push(a); return a; };
+  const hole = $('#boot-hole'), edges = $('#boot-edges');
+  const iris = t => {
+    if (!hole) return;
+    const x = Math.min(1, Math.max(0, (t - 640) / 460)), p = x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2, r = 1 + 70 * p, th = -30 + 30 * p;
+    const V = [0, 1, 2, 3, 4, 5].map(i => { const a = (th + i * 60) * Math.PI / 180; return [50 + r * Math.cos(a), 50 + r * Math.sin(a)]; });
+    hole.setAttribute('points', V.map(v => v.join(',')).join(' '));
+    edges.innerHTML = V.map((v, i) => { const w = V[(i + 1) % 6], dx = w[0] - v[0], dy = w[1] - v[1], L = Math.hypot(dx, dy) || 1; return `<line x1="${v[0]}" y1="${v[1]}" x2="${w[0] + dx / L * 80}" y2="${w[1] + dy / L * 80}"/>`; }).join('');
   };
-  el.addEventListener('click', close);
-  if (!motion()) el.classList.add('still');
-  setTimeout(close, motion() ? 1950 : 900);
+  iris(0);
+  let done = false, t0 = 0, raf = 0;
+  const finish = () => {
+    if (done) return; done = true; cancelAnimationFrame(raf);
+    anims.forEach(a => { try { a.finish(); } catch (_) {} });
+    others.forEach(el => { el.style.opacity = ''; });
+    $$('.boot-dim,.boot-sheen,.boot-test,.boot-iris').forEach(n => n.remove());
+    app.classList.remove('booting'); root.inert = !!S.layer; app.removeEventListener('pointerdown', finish);
+    anims.forEach(a => { try { a.cancel(); } catch (_) {} });
+    if (S.screen === 'home') after.home();
+  };
+  app.addEventListener('pointerdown', finish);
+  const start = () => {
+    if (done) return; t0 = performance.now();
+    const body = getComputedStyle(app).backgroundColor;
+    A(app, [{ backgroundColor: '#0B0B0C' }, { backgroundColor: '#0B0B0C', offset: .2 }, { backgroundColor: body }], { duration: 1120, easing: E.light });
+    A($('.device-head .ready'), [{ opacity: 0 }, { opacity: 1 }], { duration: 120, delay: 80 });
+    A($('.boot-dim'), [{ opacity: .94 }, { opacity: .94, offset: .15 }, { opacity: 0 }], { duration: 820, delay: 200, easing: E.light });
+    A($('.boot-test'), [{ opacity: 0 }, { opacity: 1, offset: .04 }, { opacity: 1, offset: .86 }, { opacity: 0 }], { duration: 560, delay: 200, easing: 'linear' });
+    A($('.boot-iris'), [{ opacity: 1 }, { opacity: 1, offset: .7 }, { opacity: 0 }], { duration: 560, delay: 640, easing: E.light });
+    A($('.device-lens .ring'), [{ transform: 'rotate(-24deg)' }, { transform: 'none' }], { duration: 620, delay: 620, easing: E.detent });
+    $$('.device-keys span').forEach((k, i) => A(k, [{ transform: 'translateY(-7px)', opacity: 0 }, { transform: k.classList.contains('on') ? 'translateY(1px)' : 'none', opacity: 1 }], { duration: 340, delay: 980 + i * 90, easing: E.detent }));
+    $$('.device-leds .pp-led').forEach((l, i) => A(l, [{ background: '#C4C3BD', boxShadow: 'none' }, { background: '#FF5A1F', boxShadow: '0 0 8px 1px rgba(255,90,31,.6)', offset: .2 }, { background: '#FF5A1F', boxShadow: '0 0 8px 1px rgba(255,90,31,.6)', offset: .55 }, { background: '#C4C3BD', boxShadow: 'none' }], { duration: 240, delay: 1180 + i * 90, easing: E.led, fill: 'none' }));
+    A($('.boot-sheen i'), [{ transform: 'translateX(-160%) rotate(22deg)' }, { transform: 'translateX(420%) rotate(22deg)' }], { duration: 700, delay: 1100, easing: E.light });
+    A(dev, [{ transform: 'scale(1.12)' }, { transform: 'scale(1.12)', offset: .55 }, { transform: 'none' }], { duration: 1900, easing: E.light });
+    others.forEach((el, i) => A(el, [{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 280, delay: 1420 + i * 60, easing: E.light }));
+    const loop = () => { const t = performance.now() - t0; iris(t); if (t < 1200 && !done) raf = requestAnimationFrame(loop); };
+    raf = requestAnimationFrame(loop);
+    setTimeout(finish, 1420 + others.length * 60 + 320);
+  };
+  // 렌즈 사진이 디코드된 뒤 시작 (최대 0.6초 대기) — 깜빡임 방지
+  Promise.race([lensImg?.decode ? lensImg.decode().catch(() => {}) : Promise.resolve(), new Promise(r => setTimeout(r, 600))]).then(start);
 }
 
 render(); opening();

@@ -81,3 +81,44 @@ window.PhotoPickImprint = async (p) => {
   const lm = at ? new Date(+at[1], at[2] - 1, +at[3], +at[4], +at[5], +at[6]).getTime() : (p.mtime || Date.now());
   return new File([blob], p.name.replace(/\.jpe?g$/i, '') + '_date.jpg', { type: 'image/jpeg', lastModified: lm });
 };
+/* 줄 스토리 카드: 고른 사진 3~4장을 세로로 줄지어 놓은 1080×1920 카드.
+   picks: [{ p, fx, fy }] — fx·fy는 0~1 크롭 위치(CSS object-position과 같은 뜻) */
+const ROWS_LAYOUT = { W: 1080, H: 1920, x: 60, top: 196, bottom: 1636, gap: 16 };
+window.PhotoPickRowsLayout = ROWS_LAYOUT;
+window.PhotoPickRows = async ({ picks, total, folder, range }) => {
+  const L = ROWS_LAYOUT, W = L.W, H = L.H, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  try { await Promise.all(['600 120px "Hanken Grotesk"', '500 30px "JetBrains Mono"', '700 40px "Hanken Grotesk"', '400 30px DSEG7'].map(f => document.fonts.load(f))); } catch (_) {}
+  const ko = '"Noto Sans KR","Noto Sans CJK KR","Apple SD Gothic Neo",system-ui,sans-serif';
+  x.fillStyle = '#EDEDEB'; x.fillRect(0, 0, W, H);
+  // 머리: 전원 LED + PP-1 + 기간
+  x.fillStyle = '#FF5A1F'; x.beginPath(); x.arc(L.x + 12, 118, 11, 0, 7); x.fill();
+  x.fillStyle = '#141414'; x.font = '700 40px "Hanken Grotesk",sans-serif'; x.textBaseline = 'alphabetic'; x.fillText('PP-1', L.x + 38, 132);
+  x.font = '500 28px "JetBrains Mono",monospace'; x.fillStyle = '#5C5C5A'; x.textAlign = 'right'; x.fillText(range || '', W - L.x, 132); x.textAlign = 'left';
+  // 줄 사진
+  const n = picks.length, bw = W - L.x * 2, bh = (L.bottom - L.top - L.gap * (n - 1)) / n;
+  for (let i = 0; i < n; i++) {
+    const { p, fx = .5, fy = .5 } = picks[i], by = L.top + i * (bh + L.gap);
+    x.save(); x.beginPath(); x.roundRect(L.x, by, bw, bh, 14); x.clip();
+    try {
+      const src = p.file || await (await fetch(p.url)).blob();
+      const bmp = await createImageBitmap(src);
+      const r = Math.max(bw / bmp.width, bh / bmp.height), dw = bmp.width * r, dh = bmp.height * r;
+      x.drawImage(bmp, L.x + (bw - dw) * fx, by + (bh - dh) * fy, dw, dh); bmp.close();
+    } catch (_) { x.fillStyle = '#2a2a28'; x.fillRect(L.x, by, bw, bh); }
+    x.restore();
+    if (p.date && p.date !== 'unknown') stamp7(x, p.date, L.x + bw - 28, by + bh - 26, 32);
+  }
+  // 아래: 큰 숫자 + 문구 + 각인 눈금
+  const count = String(n).padStart(2, '0');
+  x.fillStyle = '#141414'; x.font = '600 190px "Hanken Grotesk",sans-serif'; x.fillText(count, L.x - 8, 1836);
+  const cw = x.measureText(count).width;
+  x.font = `700 44px ${ko}`; x.fillText('장을 골랐어요', L.x + cw + 18, 1772);
+  x.font = `500 30px ${ko}`; x.fillStyle = '#5C5C5A'; x.fillText(`${total}장 중에서${folder ? ' · ' + folder : ''}`.slice(0, 30), L.x + cw + 18, 1822);
+  x.fillStyle = '#9C9B96'; for (let t = 0; t <= bw; t += 12) x.fillRect(L.x + t, 1868, 2, t % 60 ? 8 : 18);
+  x.fillStyle = '#141414'; x.fillRect(L.x, 1884, bw, 4);
+  const g = document.createElement('canvas'); g.width = W; g.height = H; const gx = g.getContext('2d'), gd = gx.createImageData(W, H);
+  for (let i = 0; i < gd.data.length; i += 4) gd.data[i + 3] = Math.random() * 14; gx.putImageData(gd, 0, 0); x.drawImage(g, 0, 0);
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .92));
+  return new File([blob], `PhotoPick-story-${Date.now().toString(36)}.jpg`, { type: 'image/jpeg' });
+};
