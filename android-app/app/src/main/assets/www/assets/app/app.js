@@ -4,7 +4,7 @@
    onNativeSaveProgress, onNativeSaveComplete, nativeBack)은 이전 버전과 같은 이름과 인자를 받는다. */
 (() => {
 'use strict';
-const VERSION = 'PP-1 0.5.3';
+const VERSION = 'PP-1 0.5.4';
 const NATIVE = window.PhotoPickAndroid || null;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 const G = ['skip', 'keep', 'best'];
@@ -214,6 +214,7 @@ function readProgress(done, total) {
 }
 
 /* ── 날짜 고르기 ──────────────────────── */
+const startLbl = n => n ? `<span class="pp-led"></span>모아보기${ic('next')}` : '날짜를 골라 주세요';
 function dates() {
   const n = S.photos.filter(p => S.dates.includes(p.date)).length, all = S.dates.length === S.groups.length;
   return `<div class="top"><button class="icon-btn" data-act="back" aria-label="처음 화면으로">${ic('back')}</button>
@@ -228,7 +229,7 @@ function dates() {
       <span class="day">${day}</span><span class="meta"><b>${dateTitle(g.key)}</b><small>${g.ids.length}장${S.places?.[g.key] ? ` · ${esc(S.places[g.key])}` : ''}${rated ? ` · <em>${rated}장 평가함</em>` : ''}</small></span><span class="pp-check"></span>
       <span class="thumbs">${show.map(id => `<span>${tImg(S.photos[id])}</span>`).join('')}${g.ids.length > 5 ? `<span class="more">${tImg(S.photos[g.ids[4]])}<b>+${g.ids.length - 4}</b></span>` : ''}</span></button>`;
   }).join('')}</div>
-  <div class="foot"><div class="countbox"><b id="sel-n">${n}</b><small>장</small></div><button class="pp-btn" data-act="start" ${n ? '' : 'disabled'}><span class="pp-led"></span>${n ? '고르기 시작' : '날짜를 골라 주세요'}</button></div>`;
+  <div class="foot"><div class="countbox"><b id="sel-n">${n}</b><small>장</small></div><button class="pp-btn go-sheet" data-act="start" ${n ? '' : 'disabled'}>${startLbl(n)}</button></div>`;
 }
 
 /* ── 평가 ─────────────────────────────── */
@@ -290,10 +291,10 @@ function sheetView(ids, c) {
   <div class="filters" role="radiogroup" aria-label="평가로 거르기">${f.map(([k, l, n]) => `<button class="chip" role="radio" aria-checked="${S.filter === k}" data-act="filter" data-f="${k}"><b>${n}</b><span class="chip-l">${S.filter === k ? '<span class="pp-led is-on"></span>' : ''}${l}</span></button>`).join('')}</div>
   <div class="sheetgrid grow${S.multi ? ' is-multi' : ''}" id="sheet">${list.length ? list.map(p => tile(p, p.id === S.cur)).join('') : '<p class="empty">이 평가의 사진이 없어요.</p>'}</div>
   ${S.multi ? `<div class="batchbar"><div class="batch-top"><b><span class="pp-num" id="multi-n">${S.multi.size}</span>장 선택</b><button class="text-btn" data-act="multi-all">${list.length && list.every(p => S.multi.has(p.id)) ? '모두 해제' : '보이는 사진 모두'}</button><button class="text-btn" data-act="multi-off">취소</button></div>
-    <div class="ratekeys">${G.map(k => `<button class="rk" data-act="batch" data-g="${k}" ${S.multi.size ? '' : 'disabled'}><span class="pp-led"></span>${ic(k)}<span>${LABEL[k]}</span></button>`).join('')}</div></div>`
-  : `<div class="row3 sheet-row"><button class="pp-btn sheet-start" data-act="one" data-from="start">${c.unrated === ids.length ? '평가 시작' : c.unrated ? '이어서 평가' : '한 장씩 보기'}${ic('next')}</button><button class="pp-btn pp-btn--key" data-act="multi-on" aria-label="여러 장 선택">${ic('check2')}<span class="lbl-opt">여러 장</span></button><button class="pp-btn pp-btn--key" data-act="results">결과</button></div>`}`;
+    <div class="ratekeys">${G.map(k => `<button class="rk" data-act="batch" data-g="${k}" ${S.multi.size ? '' : 'disabled'}>${rkIc(k)}<span>${LABEL[k]}</span></button>`).join('')}</div></div>`
+  : `<div class="sheet-row"><button class="pp-btn pp-btn--key multi-key" data-act="multi-on" aria-label="여러 장 선택">${ic('check2')}<span class="lbl-opt">여러 장</span></button><button class="pp-btn sheet-start" data-act="one" data-from="start"><span class="pp-led"></span>${c.unrated === ids.length ? '평가 시작' : c.unrated ? '이어서 평가' : '한 장씩 보기'}${c.unrated && c.unrated < ids.length ? `<small>${c.unrated}장 남음</small>` : ''}${ic('next')}</button></div>`}`;
 }
-const tile = (p, cur) => { const g = R[p.key]; const sel = S.multi?.has(p.id); return `<button class="tile${g === 'skip' ? ' is-skip' : g ? '' : ' is-un'}${cur && !S.multi ? ' is-cur' : ''}${sel ? ' is-sel' : ''}" data-act="open" data-id="${p.id}" aria-label="${esc(p.name)} · ${g ? LABEL[g] : '미평가'}"${S.multi ? ` aria-pressed="${!!sel}"` : ''}>${S.multi ? '<span class="selbox"></span>' : ''}${tImg(p)}${g ? `<span class="b ${g}">${ic(g)}</span>` : ''}</button>`; };
+const tile = (p, cur) => { const g = R[p.key]; const sel = S.multi?.has(p.id); return `<button class="tile${g === 'skip' ? ' is-skip' : g ? '' : ' is-un'}${cur && !S.multi ? ' is-cur' : ''}${sel ? ' is-sel' : ''}" data-act="open" data-id="${p.id}" aria-label="${esc(p.name)} · ${g ? LABEL[g] : '미평가'}"${S.multi ? ` aria-pressed="${!!sel}"` : ''}>${S.multi ? '<span class="selbox"></span>' : ''}${tImg(p)}${g ? `<span class="b ${g}">${rkIc(g)}</span>` : ''}</button>`; };
 
 /* 숫자 블록(Readout): 캡션 줄 / 숫자 + 단위 / 각인 눈금. 결과·완료가 같은 부품을 쓴다 */
 const readout = ({ id, n, label, ctx, sub, unit = '장', prog = 0, cls = '' }) => `<div class="readout ${cls}">
@@ -1142,7 +1143,7 @@ function refreshDates() {
   $$('.datecard').forEach(c => c.setAttribute('aria-checked', S.dates.includes(c.dataset.k)));
   const sa = $('.selall'); sa.setAttribute('aria-checked', all ? 'true' : S.dates.length ? 'mixed' : 'false'); 
   const sn = $('#sel-n'); if (motion() && sn.textContent !== String(n)) sn.animate([{ transform: 'translateY(-40%)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 200 }); sn.textContent = n;
-  const st = $('[data-act="start"]'); st.disabled = !n; st.innerHTML = `<span class="pp-led"></span>${n ? '고르기 시작' : '날짜를 골라 주세요'}`;
+  const st = $('[data-act="start"]'); st.disabled = !n; st.innerHTML = startLbl(n);
 }
 
 /* 키보드 */
